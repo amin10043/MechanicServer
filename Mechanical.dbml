@@ -527,6 +527,37 @@
       <Column Name="UserId" Type="System.Int32" DbType="Int" CanBeNull="true" />
     </Type>
   </Table>
+  <Table Name="dbo.CommentInPost" Member="CommentInPosts">
+    <Type Name="CommentInPost">
+      <Column Name="Id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="Description" Type="System.String" DbType="VarChar(MAX)" CanBeNull="true" />
+      <Column Name="PostId" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="UserId" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="CommentId" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="Date" Type="System.String" DbType="VarChar(MAX)" CanBeNull="true" />
+      <Column Name="ModifyDate" Type="System.String" DbType="VarChar(MAX)" CanBeNull="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.LikeInPost" Member="LikeInPosts">
+    <Type Name="LikeInPost">
+      <Column Name="Id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="UserId" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="PostId" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="Date" Type="System.String" DbType="VarChar(MAX)" CanBeNull="true" />
+      <Column Name="CommentId" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="ModifyDate" Type="System.String" DbType="VarChar(MAX)" CanBeNull="true" />
+    </Type>
+  </Table>
+  <Table Name="mechani1sa.LikeInCommentPost" Member="LikeInCommentPosts">
+    <Type Name="LikeInCommentPost">
+      <Column Name="Id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="CommentId" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="UserId" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="IsLike" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="Date" Type="System.String" DbType="VarChar(MAX)" CanBeNull="true" />
+      <Column Name="ModifyDate" Type="System.String" DbType="VarChar(MAX)" CanBeNull="true" />
+    </Type>
+  </Table>
   <Table Name="mechani1sa.Post" Member="Posts">
     <Type Name="Post">
       <Column Name="Id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsPrimaryKey="true" IsDbGenerated="true" CanBeNull="false" />
@@ -539,6 +570,7 @@
       <Column Name="seenBefore" Type="System.Int32" DbType="Int" CanBeNull="true" />
       <Column Name="Photo" Type="System.Data.Linq.Binary" DbType="VarBinary(MAX)" CanBeNull="true" UpdateCheck="Never" />
       <Column Name="ObjectId" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="ImageServerDate" Type="System.String" DbType="NVarChar(MAX)" CanBeNull="true" />
     </Type>
   </Table>
 </Database>

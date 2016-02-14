@@ -63,6 +63,15 @@ namespace Service
     partial void InsertUser(User instance);
     partial void UpdateUser(User instance);
     partial void DeleteUser(User instance);
+    partial void InsertCommentInPost(CommentInPost instance);
+    partial void UpdateCommentInPost(CommentInPost instance);
+    partial void DeleteCommentInPost(CommentInPost instance);
+    partial void InsertLikeInPost(LikeInPost instance);
+    partial void UpdateLikeInPost(LikeInPost instance);
+    partial void DeleteLikeInPost(LikeInPost instance);
+    partial void InsertLikeInCommentPost(LikeInCommentPost instance);
+    partial void UpdateLikeInCommentPost(LikeInCommentPost instance);
+    partial void DeleteLikeInCommentPost(LikeInCommentPost instance);
     partial void InsertPost(Post instance);
     partial void UpdatePost(Post instance);
     partial void DeletePost(Post instance);
@@ -455,6 +464,30 @@ namespace Service
 			get
 			{
 				return this.GetTable<Anad>();
+			}
+		}
+		
+		public System.Data.Linq.Table<CommentInPost> CommentInPosts
+		{
+			get
+			{
+				return this.GetTable<CommentInPost>();
+			}
+		}
+		
+		public System.Data.Linq.Table<LikeInPost> LikeInPosts
+		{
+			get
+			{
+				return this.GetTable<LikeInPost>();
+			}
+		}
+		
+		public System.Data.Linq.Table<LikeInCommentPost> LikeInCommentPosts
+		{
+			get
+			{
+				return this.GetTable<LikeInCommentPost>();
 			}
 		}
 		
@@ -7737,6 +7770,576 @@ namespace Service
 		}
 	}
 	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.CommentInPost")]
+	public partial class CommentInPost : INotifyPropertyChanging, INotifyPropertyChanged
+	{
+		
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
+		
+		private int _Id;
+		
+		private string _Description;
+		
+		private System.Nullable<int> _PostId;
+		
+		private System.Nullable<int> _UserId;
+		
+		private System.Nullable<int> _CommentId;
+		
+		private string _Date;
+		
+		private string _ModifyDate;
+		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnIdChanging(int value);
+    partial void OnIdChanged();
+    partial void OnDescriptionChanging(string value);
+    partial void OnDescriptionChanged();
+    partial void OnPostIdChanging(System.Nullable<int> value);
+    partial void OnPostIdChanged();
+    partial void OnUserIdChanging(System.Nullable<int> value);
+    partial void OnUserIdChanged();
+    partial void OnCommentIdChanging(System.Nullable<int> value);
+    partial void OnCommentIdChanged();
+    partial void OnDateChanging(string value);
+    partial void OnDateChanged();
+    partial void OnModifyDateChanging(string value);
+    partial void OnModifyDateChanged();
+    #endregion
+		
+		public CommentInPost()
+		{
+			OnCreated();
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Id", AutoSync=AutoSync.OnInsert, DbType="Int NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
+		public int Id
+		{
+			get
+			{
+				return this._Id;
+			}
+			set
+			{
+				if ((this._Id != value))
+				{
+					this.OnIdChanging(value);
+					this.SendPropertyChanging();
+					this._Id = value;
+					this.SendPropertyChanged("Id");
+					this.OnIdChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Description", DbType="VarChar(MAX)")]
+		public string Description
+		{
+			get
+			{
+				return this._Description;
+			}
+			set
+			{
+				if ((this._Description != value))
+				{
+					this.OnDescriptionChanging(value);
+					this.SendPropertyChanging();
+					this._Description = value;
+					this.SendPropertyChanged("Description");
+					this.OnDescriptionChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_PostId", DbType="Int")]
+		public System.Nullable<int> PostId
+		{
+			get
+			{
+				return this._PostId;
+			}
+			set
+			{
+				if ((this._PostId != value))
+				{
+					this.OnPostIdChanging(value);
+					this.SendPropertyChanging();
+					this._PostId = value;
+					this.SendPropertyChanged("PostId");
+					this.OnPostIdChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_UserId", DbType="Int")]
+		public System.Nullable<int> UserId
+		{
+			get
+			{
+				return this._UserId;
+			}
+			set
+			{
+				if ((this._UserId != value))
+				{
+					this.OnUserIdChanging(value);
+					this.SendPropertyChanging();
+					this._UserId = value;
+					this.SendPropertyChanged("UserId");
+					this.OnUserIdChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_CommentId", DbType="Int")]
+		public System.Nullable<int> CommentId
+		{
+			get
+			{
+				return this._CommentId;
+			}
+			set
+			{
+				if ((this._CommentId != value))
+				{
+					this.OnCommentIdChanging(value);
+					this.SendPropertyChanging();
+					this._CommentId = value;
+					this.SendPropertyChanged("CommentId");
+					this.OnCommentIdChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Date", DbType="VarChar(MAX)")]
+		public string Date
+		{
+			get
+			{
+				return this._Date;
+			}
+			set
+			{
+				if ((this._Date != value))
+				{
+					this.OnDateChanging(value);
+					this.SendPropertyChanging();
+					this._Date = value;
+					this.SendPropertyChanged("Date");
+					this.OnDateChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_ModifyDate", DbType="VarChar(MAX)")]
+		public string ModifyDate
+		{
+			get
+			{
+				return this._ModifyDate;
+			}
+			set
+			{
+				if ((this._ModifyDate != value))
+				{
+					this.OnModifyDateChanging(value);
+					this.SendPropertyChanging();
+					this._ModifyDate = value;
+					this.SendPropertyChanged("ModifyDate");
+					this.OnModifyDateChanged();
+				}
+			}
+		}
+		
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
+		{
+			if ((this.PropertyChanging != null))
+			{
+				this.PropertyChanging(this, emptyChangingEventArgs);
+			}
+		}
+		
+		protected virtual void SendPropertyChanged(String propertyName)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			}
+		}
+	}
+	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="dbo.LikeInPost")]
+	public partial class LikeInPost : INotifyPropertyChanging, INotifyPropertyChanged
+	{
+		
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
+		
+		private int _Id;
+		
+		private System.Nullable<int> _UserId;
+		
+		private System.Nullable<int> _PostId;
+		
+		private string _Date;
+		
+		private System.Nullable<int> _CommentId;
+		
+		private string _ModifyDate;
+		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnIdChanging(int value);
+    partial void OnIdChanged();
+    partial void OnUserIdChanging(System.Nullable<int> value);
+    partial void OnUserIdChanged();
+    partial void OnPostIdChanging(System.Nullable<int> value);
+    partial void OnPostIdChanged();
+    partial void OnDateChanging(string value);
+    partial void OnDateChanged();
+    partial void OnCommentIdChanging(System.Nullable<int> value);
+    partial void OnCommentIdChanged();
+    partial void OnModifyDateChanging(string value);
+    partial void OnModifyDateChanged();
+    #endregion
+		
+		public LikeInPost()
+		{
+			OnCreated();
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Id", AutoSync=AutoSync.OnInsert, DbType="Int NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
+		public int Id
+		{
+			get
+			{
+				return this._Id;
+			}
+			set
+			{
+				if ((this._Id != value))
+				{
+					this.OnIdChanging(value);
+					this.SendPropertyChanging();
+					this._Id = value;
+					this.SendPropertyChanged("Id");
+					this.OnIdChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_UserId", DbType="Int")]
+		public System.Nullable<int> UserId
+		{
+			get
+			{
+				return this._UserId;
+			}
+			set
+			{
+				if ((this._UserId != value))
+				{
+					this.OnUserIdChanging(value);
+					this.SendPropertyChanging();
+					this._UserId = value;
+					this.SendPropertyChanged("UserId");
+					this.OnUserIdChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_PostId", DbType="Int")]
+		public System.Nullable<int> PostId
+		{
+			get
+			{
+				return this._PostId;
+			}
+			set
+			{
+				if ((this._PostId != value))
+				{
+					this.OnPostIdChanging(value);
+					this.SendPropertyChanging();
+					this._PostId = value;
+					this.SendPropertyChanged("PostId");
+					this.OnPostIdChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Date", DbType="VarChar(MAX)")]
+		public string Date
+		{
+			get
+			{
+				return this._Date;
+			}
+			set
+			{
+				if ((this._Date != value))
+				{
+					this.OnDateChanging(value);
+					this.SendPropertyChanging();
+					this._Date = value;
+					this.SendPropertyChanged("Date");
+					this.OnDateChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_CommentId", DbType="Int")]
+		public System.Nullable<int> CommentId
+		{
+			get
+			{
+				return this._CommentId;
+			}
+			set
+			{
+				if ((this._CommentId != value))
+				{
+					this.OnCommentIdChanging(value);
+					this.SendPropertyChanging();
+					this._CommentId = value;
+					this.SendPropertyChanged("CommentId");
+					this.OnCommentIdChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_ModifyDate", DbType="VarChar(MAX)")]
+		public string ModifyDate
+		{
+			get
+			{
+				return this._ModifyDate;
+			}
+			set
+			{
+				if ((this._ModifyDate != value))
+				{
+					this.OnModifyDateChanging(value);
+					this.SendPropertyChanging();
+					this._ModifyDate = value;
+					this.SendPropertyChanged("ModifyDate");
+					this.OnModifyDateChanged();
+				}
+			}
+		}
+		
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
+		{
+			if ((this.PropertyChanging != null))
+			{
+				this.PropertyChanging(this, emptyChangingEventArgs);
+			}
+		}
+		
+		protected virtual void SendPropertyChanged(String propertyName)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			}
+		}
+	}
+	
+	[global::System.Data.Linq.Mapping.TableAttribute(Name="mechani1sa.LikeInCommentPost")]
+	public partial class LikeInCommentPost : INotifyPropertyChanging, INotifyPropertyChanged
+	{
+		
+		private static PropertyChangingEventArgs emptyChangingEventArgs = new PropertyChangingEventArgs(String.Empty);
+		
+		private int _Id;
+		
+		private System.Nullable<int> _CommentId;
+		
+		private System.Nullable<int> _UserId;
+		
+		private System.Nullable<int> _IsLike;
+		
+		private string _Date;
+		
+		private string _ModifyDate;
+		
+    #region Extensibility Method Definitions
+    partial void OnLoaded();
+    partial void OnValidate(System.Data.Linq.ChangeAction action);
+    partial void OnCreated();
+    partial void OnIdChanging(int value);
+    partial void OnIdChanged();
+    partial void OnCommentIdChanging(System.Nullable<int> value);
+    partial void OnCommentIdChanged();
+    partial void OnUserIdChanging(System.Nullable<int> value);
+    partial void OnUserIdChanged();
+    partial void OnIsLikeChanging(System.Nullable<int> value);
+    partial void OnIsLikeChanged();
+    partial void OnDateChanging(string value);
+    partial void OnDateChanged();
+    partial void OnModifyDateChanging(string value);
+    partial void OnModifyDateChanged();
+    #endregion
+		
+		public LikeInCommentPost()
+		{
+			OnCreated();
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Id", AutoSync=AutoSync.OnInsert, DbType="Int NOT NULL IDENTITY", IsPrimaryKey=true, IsDbGenerated=true)]
+		public int Id
+		{
+			get
+			{
+				return this._Id;
+			}
+			set
+			{
+				if ((this._Id != value))
+				{
+					this.OnIdChanging(value);
+					this.SendPropertyChanging();
+					this._Id = value;
+					this.SendPropertyChanged("Id");
+					this.OnIdChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_CommentId", DbType="Int")]
+		public System.Nullable<int> CommentId
+		{
+			get
+			{
+				return this._CommentId;
+			}
+			set
+			{
+				if ((this._CommentId != value))
+				{
+					this.OnCommentIdChanging(value);
+					this.SendPropertyChanging();
+					this._CommentId = value;
+					this.SendPropertyChanged("CommentId");
+					this.OnCommentIdChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_UserId", DbType="Int")]
+		public System.Nullable<int> UserId
+		{
+			get
+			{
+				return this._UserId;
+			}
+			set
+			{
+				if ((this._UserId != value))
+				{
+					this.OnUserIdChanging(value);
+					this.SendPropertyChanging();
+					this._UserId = value;
+					this.SendPropertyChanged("UserId");
+					this.OnUserIdChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_IsLike", DbType="Int")]
+		public System.Nullable<int> IsLike
+		{
+			get
+			{
+				return this._IsLike;
+			}
+			set
+			{
+				if ((this._IsLike != value))
+				{
+					this.OnIsLikeChanging(value);
+					this.SendPropertyChanging();
+					this._IsLike = value;
+					this.SendPropertyChanged("IsLike");
+					this.OnIsLikeChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_Date", DbType="VarChar(MAX)")]
+		public string Date
+		{
+			get
+			{
+				return this._Date;
+			}
+			set
+			{
+				if ((this._Date != value))
+				{
+					this.OnDateChanging(value);
+					this.SendPropertyChanging();
+					this._Date = value;
+					this.SendPropertyChanged("Date");
+					this.OnDateChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_ModifyDate", DbType="VarChar(MAX)")]
+		public string ModifyDate
+		{
+			get
+			{
+				return this._ModifyDate;
+			}
+			set
+			{
+				if ((this._ModifyDate != value))
+				{
+					this.OnModifyDateChanging(value);
+					this.SendPropertyChanging();
+					this._ModifyDate = value;
+					this.SendPropertyChanged("ModifyDate");
+					this.OnModifyDateChanged();
+				}
+			}
+		}
+		
+		public event PropertyChangingEventHandler PropertyChanging;
+		
+		public event PropertyChangedEventHandler PropertyChanged;
+		
+		protected virtual void SendPropertyChanging()
+		{
+			if ((this.PropertyChanging != null))
+			{
+				this.PropertyChanging(this, emptyChangingEventArgs);
+			}
+		}
+		
+		protected virtual void SendPropertyChanged(String propertyName)
+		{
+			if ((this.PropertyChanged != null))
+			{
+				this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+			}
+		}
+	}
+	
 	[global::System.Data.Linq.Mapping.TableAttribute(Name="mechani1sa.Post")]
 	public partial class Post : INotifyPropertyChanging, INotifyPropertyChanged
 	{
@@ -7763,6 +8366,8 @@ namespace Service
 		
 		private System.Nullable<int> _ObjectId;
 		
+		private string _ImageServerDate;
+		
     #region Extensibility Method Definitions
     partial void OnLoaded();
     partial void OnValidate(System.Data.Linq.ChangeAction action);
@@ -7787,6 +8392,8 @@ namespace Service
     partial void OnPhotoChanged();
     partial void OnObjectIdChanging(System.Nullable<int> value);
     partial void OnObjectIdChanged();
+    partial void OnImageServerDateChanging(string value);
+    partial void OnImageServerDateChanged();
     #endregion
 		
 		public Post()
@@ -7990,6 +8597,26 @@ namespace Service
 					this._ObjectId = value;
 					this.SendPropertyChanged("ObjectId");
 					this.OnObjectIdChanged();
+				}
+			}
+		}
+		
+		[global::System.Data.Linq.Mapping.ColumnAttribute(Storage="_ImageServerDate", DbType="NVarChar(MAX)")]
+		public string ImageServerDate
+		{
+			get
+			{
+				return this._ImageServerDate;
+			}
+			set
+			{
+				if ((this._ImageServerDate != value))
+				{
+					this.OnImageServerDateChanging(value);
+					this.SendPropertyChanging();
+					this._ImageServerDate = value;
+					this.SendPropertyChanged("ImageServerDate");
+					this.OnImageServerDateChanged();
 				}
 			}
 		}

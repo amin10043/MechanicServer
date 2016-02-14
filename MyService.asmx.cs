@@ -239,6 +239,142 @@
         }
 
         [WebMethod]
+        public string getAllCommentInPost(string fromDate, string endDate, int isRefresh)
+        {
+            List<CommentInPost> source = null;
+            string str = "";
+            str = " CommentInPost***Id^^^Description^^^PostId^^^UserId^^^Date^^^ CommentId***";
+            string currentDate = this.getServerDateMilis();
+            if (isRefresh > 0)
+            {
+                if ((fromDate != null) && (fromDate != ""))
+                {
+                    source = (from x in this.context.CommentInPosts
+                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0)
+                              orderby x.ModifyDate descending
+                              select x).Take<CommentInPost>(this.recordCount).ToList<CommentInPost>();
+                }
+            }
+            else if ((endDate != null) && (endDate != ""))
+            {
+                source = (from x in this.context.CommentInPosts
+                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0)
+                          orderby x.ModifyDate descending
+                          select x).Take<CommentInPost>(this.recordCount).ToList<CommentInPost>();
+            }
+            else
+            {
+                source = (from x in this.context.CommentInPosts
+                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0)
+                          orderby x.ModifyDate descending
+                          select x).Take<CommentInPost>(this.recordCount).ToList<CommentInPost>();
+            }
+            if ((source == null) || (source.Count<CommentInPost>() <= 0))
+            {
+                return "";
+            }
+            str = (str + source.FirstOrDefault<CommentInPost>().ModifyDate + "***") + source.LastOrDefault<CommentInPost>().ModifyDate + "***";
+            foreach (CommentInPost obj2 in source)
+            {
+                
+                object obj3 = str;
+                str = string.Concat(new object[] { obj3, obj2.Id, "^^^", obj2.Description, "^^^", obj2.PostId, "^^^", obj2.UserId, "^^^", obj2.ModifyDate, "^^^", obj2.CommentId, "***" });
+            }
+            return str;
+        }
+
+        [WebMethod]
+        public string getAllLikeInPost(string fromDate, string endDate, int isRefresh)
+        {
+            List<LikeInPost> source = null;
+            string str = "";
+            str = " LikeInPost***Id^^^UserId^^^PostId^^^Date^^^CommentId***";
+            string currentDate = this.getServerDateMilis();
+            if (isRefresh > 0)
+            {
+                if ((fromDate != null) && (fromDate != ""))
+                {
+                    source = (from x in this.context.LikeInPosts
+                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0)
+                              orderby x.ModifyDate descending
+                              select x).Take<LikeInPost>(this.recordCount).ToList<LikeInPost>();
+                }
+            }
+            else if ((endDate != null) && (endDate != ""))
+            {
+                source = (from x in this.context.LikeInPosts
+                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0)
+                          orderby x.ModifyDate descending
+                          select x).Take<LikeInPost>(this.recordCount).ToList<LikeInPost>();
+            }
+            else
+            {
+                source = (from x in this.context.LikeInPosts
+                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0)
+                          orderby x.ModifyDate descending
+                          select x).Take<LikeInPost>(this.recordCount).ToList<LikeInPost>();
+            }
+            if ((source == null) || (source.Count<LikeInPost>() <= 0))
+            {
+                return "";
+            }
+            str = (str + source.FirstOrDefault<LikeInPost>().ModifyDate + "***") + source.LastOrDefault<LikeInPost>().ModifyDate + "***";
+            foreach (LikeInPost obj2 in source)
+            {
+
+                object obj3 = str;
+                str = string.Concat(new object[] { obj3, obj2.Id, "^^^", obj2.UserId, "^^^", obj2.PostId, "^^^", obj2.ModifyDate, "^^^", obj2.CommentId, "***" });
+            }
+            return str;
+        }
+
+        [WebMethod]
+        public string getAllLikeInCommentPost(string fromDate, string endDate, int isRefresh)
+        {
+            List<LikeInCommentPost> source = null;
+            string str = "";
+            str = " LikeInCommentPost***Id^^^CommentId^^^UserId^^^IsLike^^^Date***";
+            string currentDate = this.getServerDateMilis();
+            if (isRefresh > 0)
+            {
+                if ((fromDate != null) && (fromDate != ""))
+                {
+                    source = (from x in this.context.LikeInCommentPosts
+                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0)
+                              orderby x.ModifyDate descending
+                              select x).Take<LikeInCommentPost>(this.recordCount).ToList<LikeInCommentPost>();
+                }
+            }
+            else if ((endDate != null) && (endDate != ""))
+            {
+                source = (from x in this.context.LikeInCommentPosts
+                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0)
+                          orderby x.ModifyDate descending
+                          select x).Take<LikeInCommentPost>(this.recordCount).ToList<LikeInCommentPost>();
+            }
+            else
+            {
+                source = (from x in this.context.LikeInCommentPosts
+                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0)
+                          orderby x.ModifyDate descending
+                          select x).Take<LikeInCommentPost>(this.recordCount).ToList<LikeInCommentPost>();
+            }
+            if ((source == null) || (source.Count<LikeInCommentPost>() <= 0))
+            {
+                return "";
+            }
+            str = (str + source.FirstOrDefault<LikeInCommentPost>().ModifyDate + "***") + source.LastOrDefault<LikeInCommentPost>().ModifyDate + "***";
+            foreach (LikeInCommentPost obj2 in source)
+            {
+
+                object obj3 = str;
+                str = string.Concat(new object[] { obj3, obj2.Id, "^^^", obj2.CommentId, "^^^", obj2.UserId, "^^^", obj2.IsLike, "^^^", obj2.ModifyDate, "***" });
+            }
+            return str;
+        }
+
+
+        [WebMethod]
         public string getAllFroum(string fromDate, string endDate, int isRefresh)
         {
             List<Froum> source = null;
@@ -803,6 +939,23 @@
             {
                 str = str + str2 + "&&&";
             }
+
+            str2 = this.getAllCommentInPost(strArray[1], strArray2[1], isRefresh);
+            if (str2 != "")
+            {
+                str = str + str2 + "&&&";
+            }
+
+            str2 = this.getAllLikeInPost(strArray[1], strArray2[1], isRefresh);
+            if (str2 != "")
+            {
+                str = str + str2 + "&&&";
+            }
+            str2 = this.getAllLikeInCommentPost(strArray[1], strArray2[1], isRefresh);
+            if (str2 != "")
+            {
+                str = str + str2 + "&&&";
+            }
             return str;
         }
 
@@ -853,6 +1006,13 @@
             {
                 str = str + str2 + "&&&";
             }
+            str2 = this.getAllPost("", "", isRefresh);
+            if (str2 != "")
+            {
+                str = str + str2 + "&&&";
+            }
+
+
             return str;
         }
 
@@ -908,7 +1068,7 @@
         {
             List<Post> source = null;
             string str = "";
-            str = "Post***Id^^^UserId^^^Description^^^Seen^^^Submit^^^Date^^^seenBefore***";
+            str = "Post***Id^^^UserId^^^objectId^^^Description^^^Seen^^^Submit^^^Date^^^seenBefore***";
             string currentDate = this.getServerDateMilis();
             if (isRefresh > 0)
             {
@@ -943,7 +1103,7 @@
             {
                 object obj2 = str;
                 str = string.Concat(new object[] { 
-                    obj2, post.Id, "^^^", post.UserId, "^^^", post.Description, "^^^", post.Seen, "^^^", post.Submit, "^^^", post.Date, "^^^", post.seenBefore,"***"
+                    obj2, post.Id, "^^^", post.UserId, "^^^",post.ObjectId ,"^^^", post.Description, "^^^", post.Seen, "^^^", post.Submit, "^^^", post.Date, "^^^", post.seenBefore,"***"
                  });
             }
             return str;
@@ -994,6 +1154,7 @@
             return str;
         }
 
+        [WebMethod]
         public string getAllPostByObjectId(string fromDate, string endDate, int isRefresh, int objectId)
         {
             List<Post> source = null;
@@ -1039,6 +1200,7 @@
             return str;
         }
 
+        [WebMethod]
         public string getAllPostByUserIdAndObjectId(string fromDate, string endDate, int isRefresh,int userId, int objectId)
         {
             List<Post> source = null;
@@ -1101,8 +1263,8 @@
         {
             Service.Anad anad;
             byte[] buffer = new byte[1000];
-           // if ((fromDate == null) || ("" == fromDate))
-          //  {
+            if ((fromDate == null) || ("" == fromDate))
+            {
                 anad = (from x in this.context.Anads
                         where x.Id == id
                         select x).FirstOrDefault<Service.Anad>();
@@ -1111,15 +1273,15 @@
                     buffer = anad.Image.ToArray();
                 }
                 return buffer;
-          //  }
-            //anad = (from x in this.context.Anads
-            //        where (x.Image1Date != null) && (fromDate.CompareTo(x.Image1Date) >= 0)
-            //        select x).FirstOrDefault<Service.Object>();
-            //if ((anad != null) && (anad.Image != null))
-            //{
-            //    buffer = anad.Image1.ToArray();
-            //}
-            //return buffer;
+            }
+            anad = (from x in this.context.Anads
+                    where (x.ImageServerDate != null) && (fromDate.CompareTo(x.ImageServerDate) < 0)
+                    select x).FirstOrDefault<Service.Anad>();
+            if ((anad != null) && (anad.Image != null))
+            {
+                buffer = anad.Image.ToArray();
+            }
+            return buffer;
         }
 
         [WebMethod]
@@ -1275,7 +1437,7 @@
 
             }
             user = (from x in this.context.Users
-                    where (x.ImageServerDate != null) && (fromDate.CompareTo(x.ImageServerDate) > 0)
+                    where (x.ImageServerDate != null) && (fromDate.CompareTo(x.ImageServerDate) < 0)
                     select x).FirstOrDefault<User>();
             if (user != null && user.Image != null)
             {
@@ -1300,7 +1462,7 @@
                 return image;
             }
             ticket = (from x in this.context.Tickets
-                    where (x.ImageServerDate != null) && (fromDate.CompareTo(x.ImageServerDate) > 0)
+                    where (x.ImageServerDate != null) && (fromDate.CompareTo(x.ImageServerDate) < 0)
                       select x).FirstOrDefault<Ticket>();
             if (ticket != null)
             {
@@ -1352,9 +1514,9 @@
         }
 
         [WebMethod]
-        public string getObject1ImageDate(int Id)
+        public string getObject1ImageDate(string Id)
         {
-            Object o  = (from c in context.Objects where c.Id == Id select c).FirstOrDefault<Object>();
+            Object o = (from c in context.Objects where c.Id == Convert.ToInt32(Id) select c).FirstOrDefault<Object>();
             string date = "";
             if (o != null && o.Image1Date!= null)
             {
@@ -1364,34 +1526,34 @@
             return date;
         }
         [WebMethod]
-        public string getObject2ImageDate(int Id)
+        public string getObject2ImageDate(string Id)
         {
-            Object o = (from c in context.Objects where c.Id == Id select c).FirstOrDefault<Object>();
+            Object o = (from c in context.Objects where c.Id == Convert.ToInt32(Id) select c).FirstOrDefault<Object>();
             string date = "";
-            if (o != null && o.Image1Date != null)
+            if (o != null && o.Image2Date != null)
             {
 
-                date = o.Image1Date;
+                date = o.Image2Date;
             }
             return date;
         }
         [WebMethod]
-        public string getObject3ImageDate(int Id)
+        public string getObject3ImageDate(string Id)
         {
-            Object o = (from c in context.Objects where c.Id == Id select c).FirstOrDefault<Object>();
+            Object o = (from c in context.Objects where c.Id == Convert.ToInt32(Id) select c).FirstOrDefault<Object>();
             string date = "";
-            if (o != null && o.Image1Date != null)
+            if (o != null && o.Image3Date != null)
             {
 
-                date = o.Image1Date;
+                date = o.Image3Date;
             }
             return date;
         }
 
         [WebMethod]
-        public string getUserImageDate(int id)
+        public string getUserImageDate(string Id)
         {
-            User o = (from c in context.Users where c.Id == id select c).FirstOrDefault<User>();
+            User o = (from c in context.Users where c.Id == Convert.ToInt32(Id) select c).FirstOrDefault<User>();
             string date = "";
             if (o != null && o.ImageServerDate != null)
             {
@@ -1402,16 +1564,29 @@
         }
 
         [WebMethod]
-        public string getAnadImageDate(int id)
+        public string getPostImageDate(string Id)
         {
-            Anad o = (from c in context.Anads where c.Id == id select c).FirstOrDefault<Anad>();
+            Post o = (from c in context.Posts where c.Id == Convert.ToInt32(Id) select c).FirstOrDefault<Post>();
+            string date = "";
+            if (o != null && o.ImageServerDate != null)
+            {
+
+                date = o.ImageServerDate;
+            }
+            return date;
+        }
+
+        [WebMethod]
+        public string getAnadImageDate(string Id)
+        {
+            Anad o = (from c in context.Anads where c.Id == Convert.ToInt32(Id) select c).FirstOrDefault<Anad>();
             return "";
         }
 
         [WebMethod]
-        public string getTicketImageDate(int id)
+        public string getTicketImageDate(string Id)
         {
-            Ticket o = (from c in context.Tickets where c.Id == id select c).FirstOrDefault<Ticket>();
+            Ticket o = (from c in context.Tickets where c.Id == Convert.ToInt32(Id) select c).FirstOrDefault<Ticket>();
             string date = "";
             if (o != null && o.ImageServerDate != null)
             {
@@ -1925,5 +2100,33 @@
                       select x.UserId).LongCount();
             return count;
         }
+
+        [WebMethod]
+        public string getObjectByObjectId(int objectId, string fromDate, string toDate, int provinceId = 0, int cityId = 0, int agencyService = 0)
+        {
+            String str = " Object***Id^^^Name^^^Phone^^^Email^^^Fax^^^Description^^^Cellphone^^^Address^^^Pdf1^^^Pdf2^^^Pdf3^^^Pdf4^^^ObjectTypeId^^^ObjectBrandTypeId^^^Facebook^^^Instagram^^^LinkedIn^^^Google^^^Site^^^Twitter^^^ParentId^^^rate^^^serverDate^^^MainObjectId^^^ObjectId^^^UserId^^^Date^^^IsActive^^^AgencyService***";
+            List<Object> source = null;
+            source = (from obj in this.context.Objects 
+                      join oic in this.context.ObjectInCities on obj.Id equals oic.ObjectId
+                      where (obj.ModifyDate != null) && (fromDate.CompareTo(obj.ModifyDate) < 0)
+                      && (toDate.CompareTo(obj.ModifyDate) >= 0)
+                      && oic.CityId == cityId && obj.AgencyService == agencyService
+                      orderby obj.ModifyDate descending
+                      select obj).ToList<Object>();
+         
+            str = (str + source.FirstOrDefault<Service.Object>().ModifyDate + "***") + source.LastOrDefault<Service.Object>().ModifyDate + "***";
+            foreach (Service.Object obj2 in source)
+            {
+                object obj3 = str;
+                str = string.Concat(new object[] { 
+                    obj3, obj2.Id, "^^^", obj2.Name, "^^^", obj2.Phone, "^^^", obj2.Email, "^^^", obj2.Fax, "^^^", obj2.Description, "^^^", obj2.Cellphone, "^^^", obj2.Address, 
+                    "^^^", obj2.Pdf1, "^^^", obj2.Pdf2, "^^^", obj2.Pdf3, "^^^", obj2.Pdf4, "^^^", obj2.ObjectTypeId, "^^^", obj2.ObjectBrandTypeId, "^^^", obj2.Facebook, "^^^", obj2.Instagram, 
+                    "^^^", obj2.LinkedIn, "^^^", obj2.Google, "^^^", obj2.Site, "^^^", obj2.Twitter, "^^^", obj2.ParentId, "^^^", obj2.rate, "^^^", obj2.Date, "^^^", obj2.MainObjectId, 
+                    "^^^", obj2.ObjectId, "^^^", obj2.UserId, "^^^", obj2.Date, "^^^", obj2.IsActive, "^^^", obj2.AgencyService, "***"
+                 });
+            }
+            return str;
+        }
+                    
     }
 }
