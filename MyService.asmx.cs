@@ -1,16 +1,18 @@
-﻿namespace Service
-{
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.Linq;
-    using System.Web.Services;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
+using System.Web.Services;
 
+namespace Service
+{
     [ToolboxItem(false), WebService(Namespace = "http://tempuri.org/"), WebServiceBinding(ConformsTo = WsiProfiles.BasicProfile1_1)]
     public class MyService : WebService
     {
         private MechanicalDataContext context = new MechanicalDataContext();
+
         private int recordCount = 5;
+
         private User user = new User();
 
         [WebMethod]
@@ -22,1230 +24,2099 @@
         [WebMethod]
         public string Deleting(string tableName, string param)
         {
-            string str = "";
-            string str2 = "";
-            string str3 = "";
-            string[] strArray = param.Split(new char[] { '-' });
-            string str4 = "";
-            for (int i = 0; i < strArray.Length; i++)
+            string text = "";
+            string text2 = "";
+            string text3 = "";
+            string[] array = param.Split(new char[]
+			{
+				'-'
+			});
+            string text4 = "";
+            for (int i = 0; i < array.Length; i++)
             {
-                if ((strArray[i] != null) && strArray[i].Contains(":"))
+                if (array[i] != null && array[i].Contains(":"))
                 {
-                    str = strArray[i].Substring(0, strArray[i].IndexOf(":"));
-                    str4 = strArray[i].Substring(strArray[i].IndexOf(":") + 1, (strArray[i].Length - strArray[i].IndexOf(":")) - 1);
+                    text = array[i].Substring(0, array[i].IndexOf(":"));
+                    text4 = array[i].Substring(array[i].IndexOf(":") + 1, array[i].Length - array[i].IndexOf(":") - 1);
                     try
                     {
-                        int num3 = Convert.ToInt32(str4);
-                        str2 = str4;
+                        int num = Convert.ToInt32(text4);
+                        text2 = text4;
                     }
                     catch (Exception)
                     {
-                        str2 = "'" + str4 + "'";
+                        text2 = "'" + text4 + "'";
                     }
-                    string str6 = str3;
-                    str3 = str6 + str + "=" + str2 + " AND ";
+                    string text5 = text3;
+                    text3 = string.Concat(new string[]
+					{
+						text5,
+						text,
+						"=",
+						text2,
+						" AND "
+					});
                 }
             }
-            str3 = str3.Remove(str3.LastIndexOf("AND"), 3);
-         
-            return this.context.ExecuteCommand("Delete From " + tableName + " WHERE " + str3, new object[0]).ToString();
+            text3 = text3.Remove(text3.LastIndexOf("AND"), 3);
+            return this.context.ExecuteCommand("Delete From " + tableName + " WHERE " + text3, new object[0]).ToString();
         }
 
         [WebMethod]
         public string DeletingRecord(string tableName, string Id)
         {
             int num = this.context.ExecuteCommand("Delete From " + tableName + " WHERE Id =" + Id, new object[0]);
-            num = this.context.ExecuteCommand("Delete From LikeIn" + tableName + " WHERE " + tableName + "Id =" + Id, new object[0]);
-            return this.context.ExecuteCommand("Delete From CommentIn" + tableName + " WHERE " + tableName + "Id =" + Id, new object[0]).ToString();
+            num = this.context.ExecuteCommand(string.Concat(new string[]
+			{
+				"Delete From LikeIn",
+				tableName,
+				" WHERE ",
+				tableName,
+				"Id =",
+				Id
+			}), new object[0]);
+            num = this.context.ExecuteCommand(string.Concat(new string[]
+			{
+				"Delete From CommentIn",
+				tableName,
+				" WHERE ",
+				tableName,
+				"Id =",
+				Id
+			}), new object[0]);
+            if (tableName.Contains("Comment"))
+            {
+                num = this.context.ExecuteCommand(string.Concat(new string[]
+    			{
+			        "Delete From LikeInComment",
+			        " WHERE ",
+			        "CommentId =",
+			        Id
+                }), new object[0]);
+                num = this.context.ExecuteCommand(string.Concat(new string[]
+			    {
+				    "Delete From ",
+				    tableName,
+				    " WHERE ",
+				    "CommentId =",
+				    Id
+                }), new object[0]);
+
+            }
+
+            return num;
         }
 
         [WebMethod]
         public string getAllAnad(string fromDate, string endDate, int isRefresh)
         {
-            List<Anad> source = null;
-            string str = "";
-            str = " Anad***Id^^^ObjectId^^^Date^^^ TypeId^^^ ProvinceId^^^ Seen***";
+            List<Anad> list = null;
+            string text = "";
+            text = " Anad***Id^^^UserId^^^ObjectId^^^Date^^^ TypeId^^^ ProvinceId^^^ Seen***";
             string currentDate = this.getServerDateMilis();
             if (isRefresh > 0)
             {
-                if ((fromDate != null) && (fromDate != ""))
+                if (fromDate != null && fromDate != "")
                 {
-                    source = (from x in this.context.Anads
-                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0)
-                              orderby x.ModifyDate descending
-                              select x).Take<Anad>(this.recordCount).ToList<Anad>();
+                    list = (from x in this.context.Anads
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<Anad>();
                 }
             }
-            else if ((endDate != null) && (endDate != ""))
+            else if (endDate != null && endDate != "")
             {
-                source = (from x in this.context.Anads
-                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<Anad>(this.recordCount).ToList<Anad>();
+                list = (from x in this.context.Anads
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<Anad>();
             }
             else
             {
-                source = (from x in this.context.Anads
-                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<Anad>(this.recordCount).ToList<Anad>();
+                list = (from x in this.context.Anads
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<Anad>();
             }
-            if ((source == null) || (source.Count<Anad>() <= 0))
+            string result;
+            if (list == null || list.Count<Anad>() <= 0)
             {
-                return "";
+                result = "";
             }
-            str = (str + source.FirstOrDefault<Anad>().ModifyDate + "***") + source.LastOrDefault<Anad>().ModifyDate + "***";
-            foreach (Anad anad in source)
+            else
             {
-                object obj2 = str;
-                str = string.Concat(new object[] { obj2, anad.Id, "^^^", anad.ObjectId, "^^^", anad.Date, "^^^", anad.TypeId, "^^^", anad.ProvinceId, "^^^0***" });
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<Anad>().ModifyDate,
+					"***",
+					list.LastOrDefault<Anad>().ModifyDate,
+					"***"
+				});
+                foreach (Anad current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+                        current.UserId,
+                        "^^^",
+						current.ObjectId,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.TypeId,
+						"^^^",
+						current.ProvinceId,
+						"^^^0***"
+					});
+                }
+                result = text;
             }
-            return str;
+            return result;
         }
 
         [WebMethod]
         public string getAllCmtInPaper(string fromDate, string endDate, int isRefresh)
         {
-            List<CommentInPaper> source = null;
-            string str = "";
-            str = " CmtInPaper***Id^^^Desk^^^PaperId^^^UserId^^^Date^^^ CommentId^^^ Seen***";
+            List<CommentInPaper> list = null;
+            string text = "";
+            text = " CmtInPaper***Id^^^Desk^^^PaperId^^^UserId^^^Date^^^ CommentId^^^ Seen***";
             string currentDate = this.getServerDateMilis();
             if (isRefresh > 0)
             {
-                if ((fromDate != null) && (fromDate != ""))
+                if (fromDate != null && fromDate != "")
                 {
-                    source = (from x in this.context.CommentInPapers
-                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0)
-                              orderby x.ModifyDate descending
-                              select x).Take<CommentInPaper>(this.recordCount).ToList<CommentInPaper>();
+                    list = (from x in this.context.CommentInPapers
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<CommentInPaper>();
                 }
             }
-            else if ((endDate != null) && (endDate != ""))
+            else if (endDate != null && endDate != "")
             {
-                source = (from x in this.context.CommentInPapers
-                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<CommentInPaper>(this.recordCount).ToList<CommentInPaper>();
+                list = (from x in this.context.CommentInPapers
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<CommentInPaper>();
             }
             else
             {
-                source = (from x in this.context.CommentInPapers
-                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<CommentInPaper>(this.recordCount).ToList<CommentInPaper>();
+                list = (from x in this.context.CommentInPapers
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<CommentInPaper>();
             }
-            if ((source == null) || (source.Count<CommentInPaper>() <= 0))
+            string result;
+            if (list == null || list.Count<CommentInPaper>() <= 0)
             {
-                return "";
+                result = "";
             }
-            str = (str + source.FirstOrDefault<CommentInPaper>().ModifyDate + "***") + source.LastOrDefault<CommentInPaper>().ModifyDate + "***";
-            foreach (CommentInPaper paper in source)
+            else
             {
-                object obj2 = str;
-                str = string.Concat(new object[] { obj2, paper.Id, "^^^", paper.Desk, "^^^", paper.PaperId, "^^^", paper.UserId, "^^^", paper.Date, "^^^", paper.CommentId, "^^^0***" });
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<CommentInPaper>().ModifyDate,
+					"***",
+					list.LastOrDefault<CommentInPaper>().ModifyDate,
+					"***"
+				});
+                foreach (CommentInPaper current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.Desk,
+						"^^^",
+						current.PaperId,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.CommentId,
+						"^^^0***"
+					});
+                }
+                result = text;
             }
-            return str;
+            return result;
         }
 
         [WebMethod]
         public string getAllCommentInFroum(string fromDate, string endDate, int isRefresh)
         {
-            List<CommentInFroum> source = null;
-            string str = "";
-            str = " CommentInFroum***Id^^^Desk^^^FroumId^^^UserId^^^Date^^^CommentId^^^NumofLike^^^NumofDisLike^^^Seen***";
+            List<CommentInFroum> list = null;
+            string text = "";
+            text = " CommentInFroum***Id^^^Desk^^^FroumId^^^UserId^^^Date^^^CommentId^^^NumofLike^^^NumofDisLike^^^Seen***";
             string currentDate = this.getServerDateMilis();
             if (isRefresh > 0)
             {
-                if ((fromDate != null) && (fromDate != ""))
+                if (fromDate != null && fromDate != "")
                 {
-                    source = (from x in this.context.CommentInFroums
-                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0)
-                              orderby x.ModifyDate descending
-                              select x).Take<CommentInFroum>(this.recordCount).ToList<CommentInFroum>();
+                    list = (from x in this.context.CommentInFroums
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<CommentInFroum>();
                 }
             }
-            else if ((endDate != null) && (endDate != ""))
+            else if (endDate != null && endDate != "")
             {
-                source = (from x in this.context.CommentInFroums
-                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<CommentInFroum>(this.recordCount).ToList<CommentInFroum>();
+                list = (from x in this.context.CommentInFroums
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<CommentInFroum>();
             }
             else
             {
-                source = (from x in this.context.CommentInFroums
-                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<CommentInFroum>(this.recordCount).ToList<CommentInFroum>();
+                list = (from x in this.context.CommentInFroums
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<CommentInFroum>();
             }
-            if ((source == null) || (source.Count<CommentInFroum>() <= 0))
+            string result;
+            if (list == null || list.Count<CommentInFroum>() <= 0)
             {
-                return "";
+                result = "";
             }
-            str = (str + source.FirstOrDefault<CommentInFroum>().ModifyDate + "***") + source.LastOrDefault<CommentInFroum>().ModifyDate + "***";
-            foreach (CommentInFroum froum in source)
+            else
             {
-                object obj2 = str;
-                str = string.Concat(new object[] { 
-                    obj2, froum.ID, "^^^", froum.Desk, "^^^", froum.FroumId, "^^^", froum.UserId, "^^^", froum.Date, "^^^", froum.CommentId, "^^^", froum.NumofLike, "^^^", froum.NumofDisLike, 
-                    "^^^0***"
-                 });
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<CommentInFroum>().ModifyDate,
+					"***",
+					list.LastOrDefault<CommentInFroum>().ModifyDate,
+					"***"
+				});
+                foreach (CommentInFroum current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.ID,
+						"^^^",
+						current.Desk,
+						"^^^",
+						current.FroumId,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.CommentId,
+						"^^^",
+						current.NumofLike,
+						"^^^",
+						current.NumofDisLike,
+						"^^^0***"
+					});
+                }
+                result = text;
             }
-            return str;
+            return result;
         }
 
         [WebMethod]
         public string getAllCommentInObject(string fromDate, string endDate, int isRefresh)
         {
-            List<CommentInObject> source = null;
-            string str = "";
-            str = " CommentInObject***Id^^^Desk^^^ObjectId^^^UserId^^^Date^^^ CommentId ^^^ Seen ***";
+            List<CommentInObject> list = null;
+            string text = "";
+            text = " CommentInObject***Id^^^Desk^^^ObjectId^^^UserId^^^Date^^^ CommentId ^^^ Seen ***";
             string currentDate = this.getServerDateMilis();
             if (isRefresh > 0)
             {
-                if ((fromDate != null) && (fromDate != ""))
+                if (fromDate != null && fromDate != "")
                 {
-                    source = (from x in this.context.CommentInObjects
-                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0)
-                              orderby x.ModifyDate descending
-                              select x).Take<CommentInObject>(this.recordCount).ToList<CommentInObject>();
+                    list = (from x in this.context.CommentInObjects
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<CommentInObject>();
                 }
             }
-            else if ((endDate != null) && (endDate != ""))
+            else if (endDate != null && endDate != "")
             {
-                source = (from x in this.context.CommentInObjects
-                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<CommentInObject>(this.recordCount).ToList<CommentInObject>();
+                list = (from x in this.context.CommentInObjects
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<CommentInObject>();
             }
             else
             {
-                source = (from x in this.context.CommentInObjects
-                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<CommentInObject>(this.recordCount).ToList<CommentInObject>();
+                list = (from x in this.context.CommentInObjects
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<CommentInObject>();
             }
-            if ((source == null) || (source.Count<CommentInObject>() <= 0))
+            string result;
+            if (list == null || list.Count<CommentInObject>() <= 0)
             {
-                return "";
+                result = "";
             }
-            str = (str + source.FirstOrDefault<CommentInObject>().ModifyDate + "***") + source.LastOrDefault<CommentInObject>().ModifyDate + "***";
-            foreach (CommentInObject obj2 in source)
+            else
             {
-                object obj3 = str;
-                str = string.Concat(new object[] { obj3, obj2.Id, "^^^", obj2.Desk, "^^^", obj2.ObjectId, "^^^", obj2.UserId, "^^^", obj2.Date, "^^^", obj2.CommentId, "^^^0***" });
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<CommentInObject>().ModifyDate,
+					"***",
+					list.LastOrDefault<CommentInObject>().ModifyDate,
+					"***"
+				});
+                foreach (CommentInObject current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.Desk,
+						"^^^",
+						current.ObjectId,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.CommentId,
+						"^^^0***"
+					});
+                }
+                result = text;
             }
-            return str;
+            return result;
         }
 
         [WebMethod]
         public string getAllCommentInPost(string fromDate, string endDate, int isRefresh)
         {
-            List<CommentInPost> source = null;
-            string str = "";
-            str = " CommentInPost***Id^^^Description^^^PostId^^^UserId^^^Date^^^ CommentId***";
+            List<CommentInPost> list = null;
+            string text = "";
+            text = " CommentInPost***Id^^^Description^^^PostId^^^UserId^^^Date^^^ CommentId***";
             string currentDate = this.getServerDateMilis();
             if (isRefresh > 0)
             {
-                if ((fromDate != null) && (fromDate != ""))
+                if (fromDate != null && fromDate != "")
                 {
-                    source = (from x in this.context.CommentInPosts
-                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0)
-                              orderby x.ModifyDate descending
-                              select x).Take<CommentInPost>(this.recordCount).ToList<CommentInPost>();
+                    list = (from x in this.context.CommentInPosts
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<CommentInPost>();
                 }
             }
-            else if ((endDate != null) && (endDate != ""))
+            else if (endDate != null && endDate != "")
             {
-                source = (from x in this.context.CommentInPosts
-                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<CommentInPost>(this.recordCount).ToList<CommentInPost>();
+                list = (from x in this.context.CommentInPosts
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<CommentInPost>();
             }
             else
             {
-                source = (from x in this.context.CommentInPosts
-                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<CommentInPost>(this.recordCount).ToList<CommentInPost>();
+                list = (from x in this.context.CommentInPosts
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<CommentInPost>();
             }
-            if ((source == null) || (source.Count<CommentInPost>() <= 0))
+            string result;
+            if (list == null || list.Count<CommentInPost>() <= 0)
             {
-                return "";
+                result = "";
             }
-            str = (str + source.FirstOrDefault<CommentInPost>().ModifyDate + "***") + source.LastOrDefault<CommentInPost>().ModifyDate + "***";
-            foreach (CommentInPost obj2 in source)
+            else
             {
-                
-                object obj3 = str;
-                str = string.Concat(new object[] { obj3, obj2.Id, "^^^", obj2.Description, "^^^", obj2.PostId, "^^^", obj2.UserId, "^^^", obj2.ModifyDate, "^^^", obj2.CommentId, "***" });
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<CommentInPost>().ModifyDate,
+					"***",
+					list.LastOrDefault<CommentInPost>().ModifyDate,
+					"***"
+				});
+                foreach (CommentInPost current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.Description,
+						"^^^",
+						current.PostId,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.ModifyDate,
+						"^^^",
+						current.CommentId,
+						"***"
+					});
+                }
+                result = text;
             }
-            return str;
+            return result;
         }
 
         [WebMethod]
         public string getAllLikeInPost(string fromDate, string endDate, int isRefresh)
         {
-            List<LikeInPost> source = null;
-            string str = "";
-            str = " LikeInPost***Id^^^UserId^^^PostId^^^Date^^^CommentId***";
+            List<LikeInPost> list = null;
+            string text = "";
+            text = " LikeInPost***Id^^^UserId^^^PostId^^^Date^^^CommentId***";
             string currentDate = this.getServerDateMilis();
             if (isRefresh > 0)
             {
-                if ((fromDate != null) && (fromDate != ""))
+                if (fromDate != null && fromDate != "")
                 {
-                    source = (from x in this.context.LikeInPosts
-                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0)
-                              orderby x.ModifyDate descending
-                              select x).Take<LikeInPost>(this.recordCount).ToList<LikeInPost>();
+                    list = (from x in this.context.LikeInPosts
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<LikeInPost>();
                 }
             }
-            else if ((endDate != null) && (endDate != ""))
+            else if (endDate != null && endDate != "")
             {
-                source = (from x in this.context.LikeInPosts
-                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<LikeInPost>(this.recordCount).ToList<LikeInPost>();
+                list = (from x in this.context.LikeInPosts
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<LikeInPost>();
             }
             else
             {
-                source = (from x in this.context.LikeInPosts
-                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<LikeInPost>(this.recordCount).ToList<LikeInPost>();
+                list = (from x in this.context.LikeInPosts
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<LikeInPost>();
             }
-            if ((source == null) || (source.Count<LikeInPost>() <= 0))
+            string result;
+            if (list == null || list.Count<LikeInPost>() <= 0)
             {
-                return "";
+                result = "";
             }
-            str = (str + source.FirstOrDefault<LikeInPost>().ModifyDate + "***") + source.LastOrDefault<LikeInPost>().ModifyDate + "***";
-            foreach (LikeInPost obj2 in source)
+            else
             {
-
-                object obj3 = str;
-                str = string.Concat(new object[] { obj3, obj2.Id, "^^^", obj2.UserId, "^^^", obj2.PostId, "^^^", obj2.ModifyDate, "^^^", obj2.CommentId, "***" });
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<LikeInPost>().ModifyDate,
+					"***",
+					list.LastOrDefault<LikeInPost>().ModifyDate,
+					"***"
+				});
+                foreach (LikeInPost current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.PostId,
+						"^^^",
+						current.ModifyDate,
+						"^^^",
+						current.CommentId,
+						"***"
+					});
+                }
+                result = text;
             }
-            return str;
+            return result;
         }
 
         [WebMethod]
         public string getAllLikeInCommentPost(string fromDate, string endDate, int isRefresh)
         {
-            List<LikeInCommentPost> source = null;
-            string str = "";
-            str = " LikeInCommentPost***Id^^^CommentId^^^UserId^^^IsLike^^^Date***";
+            List<LikeInCommentPost> list = null;
+            string text = "";
+            text = " LikeInCommentPost***Id^^^CommentId^^^UserId^^^IsLike^^^Date***";
             string currentDate = this.getServerDateMilis();
             if (isRefresh > 0)
             {
-                if ((fromDate != null) && (fromDate != ""))
+                if (fromDate != null && fromDate != "")
                 {
-                    source = (from x in this.context.LikeInCommentPosts
-                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0)
-                              orderby x.ModifyDate descending
-                              select x).Take<LikeInCommentPost>(this.recordCount).ToList<LikeInCommentPost>();
+                    list = (from x in this.context.LikeInCommentPosts
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<LikeInCommentPost>();
                 }
             }
-            else if ((endDate != null) && (endDate != ""))
+            else if (endDate != null && endDate != "")
             {
-                source = (from x in this.context.LikeInCommentPosts
-                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<LikeInCommentPost>(this.recordCount).ToList<LikeInCommentPost>();
+                list = (from x in this.context.LikeInCommentPosts
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<LikeInCommentPost>();
             }
             else
             {
-                source = (from x in this.context.LikeInCommentPosts
-                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<LikeInCommentPost>(this.recordCount).ToList<LikeInCommentPost>();
+                list = (from x in this.context.LikeInCommentPosts
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<LikeInCommentPost>();
             }
-            if ((source == null) || (source.Count<LikeInCommentPost>() <= 0))
+            string result;
+            if (list == null || list.Count<LikeInCommentPost>() <= 0)
             {
-                return "";
+                result = "";
             }
-            str = (str + source.FirstOrDefault<LikeInCommentPost>().ModifyDate + "***") + source.LastOrDefault<LikeInCommentPost>().ModifyDate + "***";
-            foreach (LikeInCommentPost obj2 in source)
+            else
             {
-
-                object obj3 = str;
-                str = string.Concat(new object[] { obj3, obj2.Id, "^^^", obj2.CommentId, "^^^", obj2.UserId, "^^^", obj2.IsLike, "^^^", obj2.ModifyDate, "***" });
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<LikeInCommentPost>().ModifyDate,
+					"***",
+					list.LastOrDefault<LikeInCommentPost>().ModifyDate,
+					"***"
+				});
+                foreach (LikeInCommentPost current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.CommentId,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.IsLike,
+						"^^^",
+						current.ModifyDate,
+						"***"
+					});
+                }
+                result = text;
             }
-            return str;
+            return result;
         }
-
 
         [WebMethod]
         public string getAllFroum(string fromDate, string endDate, int isRefresh)
         {
-            List<Froum> source = null;
-            string str = "";
-            str = " Froum***Id^^^Title^^^Description^^^UserId^^^Date***";
+            List<Froum> list = null;
+            string text = "";
+            text = " Froum***Id^^^Title^^^Description^^^UserId^^^Date***";
             string currentDate = this.getServerDateMilis();
             if (isRefresh > 0)
             {
-                if ((fromDate != null) && (fromDate != ""))
+                if (fromDate != null && fromDate != "")
                 {
-                    source = (from x in this.context.Froums
-                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0)
-                              orderby x.ModifyDate descending
-                              select x).Take<Froum>(this.recordCount).ToList<Froum>();
+                    list = (from x in this.context.Froums
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<Froum>();
                 }
             }
-            else if ((endDate != null) && (endDate != ""))
+            else if (endDate != null && endDate != "")
             {
-                source = (from x in this.context.Froums
-                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<Froum>(this.recordCount).ToList<Froum>();
+                list = (from x in this.context.Froums
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<Froum>();
             }
             else
             {
-                source = (from x in this.context.Froums
-                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<Froum>(this.recordCount).ToList<Froum>();
+                list = (from x in this.context.Froums
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<Froum>();
             }
-            if ((source == null) || (source.Count<Froum>() <= 0))
+            string result;
+            if (list == null || list.Count<Froum>() <= 0)
             {
-                return "";
+                result = "";
             }
-            str = (str + source.FirstOrDefault<Froum>().ModifyDate + "***") + source.LastOrDefault<Froum>().ModifyDate + "***";
-            foreach (Froum froum in source)
+            else
             {
-                object obj2 = str;
-                str = string.Concat(new object[] { obj2, froum.Id, "^^^", froum.Title, "^^^", froum.Description, "^^^", froum.UserId, "^^^", froum.Date, "***" });
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<Froum>().ModifyDate,
+					"***",
+					list.LastOrDefault<Froum>().ModifyDate,
+					"***"
+				});
+                foreach (Froum current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.Title,
+						"^^^",
+						current.Description,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.Date,
+						"***"
+					});
+                }
+                result = text;
             }
-            return str;
+            return result;
         }
 
         [WebMethod]
         public List<byte[]> getAllImage(string tableName, int id, string fromDate1, string fromDate2, string fromDate3)
         {
-            return new List<byte[]>(3) { this.getObject1Image(tableName, id, fromDate1), this.getObject2Image(tableName, id, fromDate2), this.getObject3Image(tableName, id, fromDate3) };
+            return new List<byte[]>(3)
+			{
+				this.getObject1Image(tableName, id, fromDate1),
+				this.getObject2Image(tableName, id, fromDate2),
+				this.getObject3Image(tableName, id, fromDate3)
+			};
         }
 
         [WebMethod]
         public string getAllImageServerDate(string fromDate, string endDate, int isRefresh)
         {
-            string str = "";
-            if ((fromDate != null) && (fromDate != ""))
+            string result = "";
+            if (fromDate != null && fromDate != "")
             {
-                Service.Object obj2 = (from x in this.context.Objects
-                                       where x.Id == Convert.ToInt32(fromDate)
-                                       select x).FirstOrDefault<Service.Object>();
-                str = obj2.Image1Date + "-" + obj2.Image2Date + "-" + obj2.Image3Date + "-";
+                Object @object = (from x in this.context.Objects
+                                  where x.Id == Convert.ToInt32(fromDate)
+                                  select x).FirstOrDefault<Object>();
+                result = string.Concat(new string[]
+				{
+					@object.Image1Date,
+					"-",
+					@object.Image2Date,
+					"-",
+					@object.Image3Date,
+					"-"
+				});
             }
-            return str;
+            return result;
         }
 
         [WebMethod]
         public string getAllLikeInComment(string fromDate, string endDate, int isRefresh)
         {
-            List<LikeInComment> source = null;
-            string str = "";
-            str = " LikeInComment***Id^^^CommentId^^^UserId^^^IsLike^^^ModifyDate^^^Date***";
+            List<LikeInComment> list = null;
+            string text = "";
+            text = " LikeInComment***Id^^^CommentId^^^UserId^^^IsLike^^^ModifyDate^^^Date***";
             string currentDate = this.getServerDateMilis();
             if (isRefresh > 0)
             {
-                if ((fromDate != null) && (fromDate != ""))
+                if (fromDate != null && fromDate != "")
                 {
-                    source = (from x in this.context.LikeInComments
-                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0)
-                              orderby x.ModifyDate descending
-                              select x).Take<LikeInComment>(this.recordCount).ToList<LikeInComment>();
+                    list = (from x in this.context.LikeInComments
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<LikeInComment>();
                 }
             }
-            else if ((endDate != null) && (endDate != ""))
+            else if (endDate != null && endDate != "")
             {
-                source = (from x in this.context.LikeInComments
-                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<LikeInComment>(this.recordCount).ToList<LikeInComment>();
+                list = (from x in this.context.LikeInComments
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<LikeInComment>();
             }
             else
             {
-                source = (from x in this.context.LikeInComments
-                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<LikeInComment>(this.recordCount).ToList<LikeInComment>();
+                list = (from x in this.context.LikeInComments
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<LikeInComment>();
             }
-            if ((source == null) || (source.Count<LikeInComment>() <= 0))
+            string result;
+            if (list == null || list.Count<LikeInComment>() <= 0)
             {
-                return "";
+                result = "";
             }
-            str = (str + source.FirstOrDefault<LikeInComment>().ModifyDate + "***") + source.LastOrDefault<LikeInComment>().ModifyDate + "***";
-            foreach (LikeInComment comment in source)
+            else
             {
-                object obj2 = str;
-                str = string.Concat(new object[] { obj2, comment.ID, "^^^", comment.CommentId, "^^^", comment.UserId, "^^^", comment.IsLike, "^^^", comment.ModifyDate, "^^^", comment.Date, "***"});
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<LikeInComment>().ModifyDate,
+					"***",
+					list.LastOrDefault<LikeInComment>().ModifyDate,
+					"***"
+				});
+                foreach (LikeInComment current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.ID,
+						"^^^",
+						current.CommentId,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.IsLike,
+						"^^^",
+						current.ModifyDate,
+						"^^^",
+						current.Date,
+						"***"
+					});
+                }
+                result = text;
             }
-            return str;
+            return result;
         }
 
         [WebMethod]
         public string getAllLikeInCommentObject(string fromDate, string endDate, int isRefresh)
         {
-            List<LikeInCommentObject> source = null;
-            string str = "";
-            str = " LikeInCommentObject***Id^^^CommentId^^^UserId^^^IsLike^^^ModifyDate***";
+            List<LikeInCommentObject> list = null;
+            string text = "";
+            text = " LikeInCommentObject***Id^^^CommentId^^^UserId^^^IsLike^^^ModifyDate***";
             string currentDate = this.getServerDateMilis();
             if (isRefresh > 0)
             {
-                if ((fromDate != null) && (fromDate != ""))
+                if (fromDate != null && fromDate != "")
                 {
-                    source = (from x in this.context.LikeInCommentObjects
-                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0)
-                              orderby x.ModifyDate descending
-                              select x).Take<LikeInCommentObject>(this.recordCount).ToList<LikeInCommentObject>();
+                    list = (from x in this.context.LikeInCommentObjects
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<LikeInCommentObject>();
                 }
             }
-            else if ((endDate != null) && (endDate != ""))
+            else if (endDate != null && endDate != "")
             {
-                source = (from x in this.context.LikeInCommentObjects
-                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<LikeInCommentObject>(this.recordCount).ToList<LikeInCommentObject>();
+                list = (from x in this.context.LikeInCommentObjects
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<LikeInCommentObject>();
             }
             else
             {
-                source = (from x in this.context.LikeInCommentObjects
-                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<LikeInCommentObject>(this.recordCount).ToList<LikeInCommentObject>();
+                list = (from x in this.context.LikeInCommentObjects
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<LikeInCommentObject>();
             }
-            if ((source == null) || (source.Count<LikeInCommentObject>() <= 0))
+            string result;
+            if (list == null || list.Count<LikeInCommentObject>() <= 0)
             {
-                return "";
+                result = "";
             }
-            str = (str + source.FirstOrDefault<LikeInCommentObject>().ModifyDate + "***") + source.LastOrDefault<LikeInCommentObject>().ModifyDate + "***";
-            foreach (LikeInCommentObject obj2 in source)
+            else
             {
-                object obj3 = str;
-                str = string.Concat(new object[] { obj3, obj2.Id, "^^^", obj2.CommentId, "^^^", obj2.UserId, "^^^", obj2.IsLike, "^^^", obj2.ModifyDate, "***" });
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<LikeInCommentObject>().ModifyDate,
+					"***",
+					list.LastOrDefault<LikeInCommentObject>().ModifyDate,
+					"***"
+				});
+                foreach (LikeInCommentObject current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.CommentId,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.IsLike,
+						"^^^",
+						current.ModifyDate,
+						"***"
+					});
+                }
+                result = text;
             }
-            return str;
+            return result;
         }
 
         [WebMethod]
         public string getAllLikeInFroum(string fromDate, string endDate, int isRefresh)
         {
-            List<LikeInFroum> source = null;
-            string str = "";
-            str = "LikeInFroum***Id^^^UserId^^^FroumId^^^Date^^^CommentId^^^Seen***";
+            List<LikeInFroum> list = null;
+            string text = "";
+            text = "LikeInFroum***Id^^^UserId^^^FroumId^^^Date^^^CommentId^^^Seen***";
             string currentDate = this.getServerDateMilis();
             if (isRefresh > 0)
             {
-                if ((fromDate != null) && (fromDate != ""))
+                if (fromDate != null && fromDate != "")
                 {
-                    source = (from x in this.context.LikeInFroums
-                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0)
-                              orderby x.ModifyDate descending
-                              select x).Take<LikeInFroum>(this.recordCount).ToList<LikeInFroum>();
+                    list = (from x in this.context.LikeInFroums
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<LikeInFroum>();
                 }
             }
-            else if ((endDate != null) && (endDate != ""))
+            else if (endDate != null && endDate != "")
             {
-                source = (from x in this.context.LikeInFroums
-                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<LikeInFroum>(this.recordCount).ToList<LikeInFroum>();
+                list = (from x in this.context.LikeInFroums
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<LikeInFroum>();
             }
             else
             {
-                source = (from x in this.context.LikeInFroums
-                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<LikeInFroum>(this.recordCount).ToList<LikeInFroum>();
+                list = (from x in this.context.LikeInFroums
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<LikeInFroum>();
             }
-            if ((source == null) || (source.Count<LikeInFroum>() <= 0))
+            string result;
+            if (list == null || list.Count<LikeInFroum>() <= 0)
             {
-                return "";
+                result = "";
             }
-            str = (str + source.FirstOrDefault<LikeInFroum>().ModifyDate + "***") + source.LastOrDefault<LikeInFroum>().ModifyDate + "***";
-            foreach (LikeInFroum froum in source)
+            else
             {
-                object obj2 = str;
-                str = string.Concat(new object[] { obj2, froum.Id, "^^^", froum.UserId, "^^^", froum.FroumId, "^^^", froum.Date, "^^^", froum.CommentId, "^^^0***" });
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<LikeInFroum>().ModifyDate,
+					"***",
+					list.LastOrDefault<LikeInFroum>().ModifyDate,
+					"***"
+				});
+                foreach (LikeInFroum current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.FroumId,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.CommentId,
+						"^^^0***"
+					});
+                }
+                result = text;
             }
-            return str;
+            return result;
         }
 
         [WebMethod]
         public string getAllLikeInObject(string fromDate, string endDate, int isRefresh)
         {
-            List<LikeInObject> source = null;
-            string str = "";
-            str = " LikeInObject***Id^^^UserId^^^PaperId^^^Date^^^CommentId^^^Seen***";
+            List<LikeInObject> list = null;
+            string text = "";
+            text = " LikeInObject***Id^^^UserId^^^PaperId^^^Date^^^LikeType^^^Seen^^^IsLike^^^unFollow^^^unFollowDate***";
             string currentDate = this.getServerDateMilis();
             if (isRefresh > 0)
             {
-                if ((fromDate != null) && (fromDate != ""))
+                if (fromDate != null && fromDate != "")
                 {
-                    source = (from x in this.context.LikeInObjects
-                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0)
-                              orderby x.ModifyDate descending
-                              select x).Take<LikeInObject>(this.recordCount).ToList<LikeInObject>();
+                    list = (from x in this.context.LikeInObjects
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<LikeInObject>();
                 }
             }
-            else if ((endDate != null) && (endDate != ""))
+            else if (endDate != null && endDate != "")
             {
-                source = (from x in this.context.LikeInObjects
-                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<LikeInObject>(this.recordCount).ToList<LikeInObject>();
+                list = (from x in this.context.LikeInObjects
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<LikeInObject>();
             }
             else
             {
-                source = (from x in this.context.LikeInObjects
-                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<LikeInObject>(this.recordCount).ToList<LikeInObject>();
+                list = (from x in this.context.LikeInObjects
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<LikeInObject>();
             }
-            if ((source == null) || (source.Count<LikeInObject>() <= 0))
+            string result;
+            if (list == null || list.Count<LikeInObject>() <= 0)
             {
-                return "";
+                result = "";
             }
-            str = (str + source.FirstOrDefault<LikeInObject>().ModifyDate + "***") + source.LastOrDefault<LikeInObject>().ModifyDate + "***";
-            foreach (LikeInObject obj2 in source)
+            else
             {
-                object obj3 = str;
-                str = string.Concat(new object[] { obj3, obj2.Id, "^^^", obj2.UserId, "^^^", obj2.ObjectId, "^^^", obj2.Date, "^^^", obj2.CommentId, "^^^0***" });
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<LikeInObject>().ModifyDate,
+					"***",
+					list.LastOrDefault<LikeInObject>().ModifyDate,
+					"***"
+				});
+                foreach (LikeInObject current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.ObjectId,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.LikeType,
+						"^^^0",
+                        current.IsLike,
+                        "^^^",
+                        current.unFollow,
+                        "^^^",
+                        current.unFollowDate,
+                        "***"
+					});
+                }
+                result = text;
             }
-            return str;
+            return result;
         }
 
         [WebMethod]
         public string getAllLikeInPaper(string fromDate, string endDate, int isRefresh)
         {
-            List<LikeInPaper> source = null;
-            string str = "";
-            str = "LikeInPaper***Id^^^UserId^^^PaperId^^^Date^^^CommentId^^^Seen***";
+            List<LikeInPaper> list = null;
+            string text = "";
+            text = "LikeInPaper***Id^^^UserId^^^PaperId^^^Date^^^CommentId^^^Seen***";
             string currentDate = this.getServerDateMilis();
             if (isRefresh > 0)
             {
-                if ((fromDate != null) && (fromDate != ""))
+                if (fromDate != null && fromDate != "")
                 {
-                    source = (from x in this.context.LikeInPapers
-                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0)
-                              orderby x.ModifyDate descending
-                              select x).Take<LikeInPaper>(this.recordCount).ToList<LikeInPaper>();
+                    list = (from x in this.context.LikeInPapers
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<LikeInPaper>();
                 }
             }
-            else if ((endDate != null) && (endDate != ""))
+            else if (endDate != null && endDate != "")
             {
-                source = (from x in this.context.LikeInPapers
-                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<LikeInPaper>(this.recordCount).ToList<LikeInPaper>();
+                list = (from x in this.context.LikeInPapers
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<LikeInPaper>();
             }
             else
             {
-                source = (from x in this.context.LikeInPapers
-                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<LikeInPaper>(this.recordCount).ToList<LikeInPaper>();
+                list = (from x in this.context.LikeInPapers
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<LikeInPaper>();
             }
-            if ((source == null) || (source.Count<LikeInPaper>() <= 0))
+            string result;
+            if (list == null || list.Count<LikeInPaper>() <= 0)
             {
-                return "";
+                result = "";
             }
-            str = (str + source.FirstOrDefault<LikeInPaper>().ModifyDate + "***") + source.LastOrDefault<LikeInPaper>().ModifyDate + "***";
-            foreach (LikeInPaper paper in source)
+            else
             {
-                object obj2 = str;
-                str = string.Concat(new object[] { obj2, paper.Id, "^^^", paper.UserId, "^^^", paper.PaperId, "^^^", paper.Date, "^^^", paper.CommentId, "^^^0***" });
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<LikeInPaper>().ModifyDate,
+					"***",
+					list.LastOrDefault<LikeInPaper>().ModifyDate,
+					"***"
+				});
+                foreach (LikeInPaper current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.PaperId,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.CommentId,
+						"^^^0***"
+					});
+                }
+                result = text;
             }
-            return str;
+            return result;
         }
 
         [WebMethod]
         public string getAllNews(string fromDate, string endDate, int isRefresh)
         {
-            List<New> source = null;
-            string str = "";
-            str = " News***Id^^^Title^^^Description***";
+            List<New> list = null;
+            string text = "";
+            text = " News***Id^^^Title^^^Description***";
             string currentDate = this.getServerDateMilis();
             if (isRefresh > 0)
             {
-                if ((fromDate != null) && (fromDate != ""))
+                if (fromDate != null && fromDate != "")
                 {
-                    source = (from x in this.context.News
-                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0)
-                              orderby x.ModifyDate descending
-                              select x).Take<New>(this.recordCount).ToList<New>();
+                    list = (from x in this.context.News
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<New>();
                 }
             }
-            else if ((endDate != null) && (endDate != ""))
+            else if (endDate != null && endDate != "")
             {
-                source = (from x in this.context.News
-                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<New>(this.recordCount).ToList<New>();
+                list = (from x in this.context.News
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<New>();
             }
             else
             {
-                source = (from x in this.context.News
-                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<New>(this.recordCount).ToList<New>();
+                list = (from x in this.context.News
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<New>();
             }
-            if ((source == null) || (source.Count<New>() <= 0))
+            string result;
+            if (list == null || list.Count<New>() <= 0)
             {
-                return "";
+                result = "";
             }
-            str = (str + source.FirstOrDefault<New>().ModifyDate + "***") + source.LastOrDefault<New>().ModifyDate + "***";
-            foreach (New new2 in source)
+            else
             {
-                object obj2 = str;
-                str = string.Concat(new object[] { obj2, new2.Id, "^^^", new2.Title, "^^^", new2.Description, "***" });
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<New>().ModifyDate,
+					"***",
+					list.LastOrDefault<New>().ModifyDate,
+					"***"
+				});
+                foreach (New current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.Title,
+						"^^^",
+						current.Description,
+						"***"
+					});
+                }
+                result = text;
             }
-            return str;
+            return result;
         }
 
         [WebMethod]
         public string getAllObject(string fromDate, string endDate, int isRefresh)
         {
-            List<Service.Object> source = null;
-            string str = "";
-            str = " Object***Id^^^Name^^^Phone^^^Email^^^Fax^^^Description^^^Cellphone^^^Address^^^Pdf1^^^Pdf2^^^Pdf3^^^Pdf4^^^ObjectTypeId^^^ObjectBrandTypeId^^^Facebook^^^Instagram^^^LinkedIn^^^Google^^^Site^^^Twitter^^^ParentId^^^rate^^^serverDate^^^MainObjectId^^^ObjectId^^^UserId^^^Date^^^IsActive^^^AgencyService***";
+            List<Object> list = null;
+            string text = "";
+            text = " Object***Id^^^Name^^^Phone^^^Email^^^Fax^^^Description^^^Cellphone^^^Address^^^Pdf1^^^Pdf2^^^Pdf3^^^Pdf4^^^ObjectTypeId^^^ObjectBrandTypeId^^^Facebook^^^Instagram^^^LinkedIn^^^Google^^^Site^^^Twitter^^^ParentId^^^rate^^^serverDate^^^MainObjectId^^^ObjectId^^^UserId^^^Date^^^IsActive^^^AgencyService***";
             string currentDate = this.getServerDateMilis();
             if (isRefresh > 0)
             {
-                if ((fromDate != null) && (fromDate != ""))
+                if (fromDate != null && fromDate != "")
                 {
-                    source = (from x in this.context.Objects
-                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0)
-                              orderby x.ModifyDate descending
-                              select x).Take<Service.Object>(this.recordCount).ToList<Service.Object>();
+                    list = (from x in this.context.Objects
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<Object>();
                 }
             }
-            else if ((endDate != null) && (endDate != ""))
+            else if (endDate != null && endDate != "")
             {
-                source = (from x in this.context.Objects
-                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<Service.Object>(this.recordCount).ToList<Service.Object>();
+                list = (from x in this.context.Objects
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<Object>();
             }
             else
             {
-                source = (from x in this.context.Objects
-                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<Service.Object>(this.recordCount).ToList<Service.Object>();
+                list = (from x in this.context.Objects
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<Object>();
             }
-            if ((source == null) || (source.Count<Service.Object>() <= 0))
+            string result;
+            if (list == null || list.Count<Object>() <= 0)
             {
-                return "";
+                result = "";
             }
-            str = (str + source.FirstOrDefault<Service.Object>().ModifyDate + "***") + source.LastOrDefault<Service.Object>().ModifyDate + "***";
-            foreach (Service.Object obj2 in source)
+            else
             {
-                object obj3 = str;
-                str = string.Concat(new object[] { 
-                    obj3, obj2.Id, "^^^", obj2.Name, "^^^", obj2.Phone, "^^^", obj2.Email, "^^^", obj2.Fax, "^^^", obj2.Description, "^^^", obj2.Cellphone, "^^^", obj2.Address, 
-                    "^^^", obj2.Pdf1, "^^^", obj2.Pdf2, "^^^", obj2.Pdf3, "^^^", obj2.Pdf4, "^^^", obj2.ObjectTypeId, "^^^", obj2.ObjectBrandTypeId, "^^^", obj2.Facebook, "^^^", obj2.Instagram, 
-                    "^^^", obj2.LinkedIn, "^^^", obj2.Google, "^^^", obj2.Site, "^^^", obj2.Twitter, "^^^", obj2.ParentId, "^^^", obj2.rate, "^^^", obj2.Date, "^^^", obj2.MainObjectId, 
-                    "^^^", obj2.ObjectId, "^^^", obj2.UserId, "^^^", obj2.Date, "^^^", obj2.IsActive, "^^^", obj2.AgencyService, "***"
-                 });
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<Object>().ModifyDate,
+					"***",
+					list.LastOrDefault<Object>().ModifyDate,
+					"***"
+				});
+                foreach (Object current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.Name,
+						"^^^",
+						current.Phone,
+						"^^^",
+						current.Email,
+						"^^^",
+						current.Fax,
+						"^^^",
+						current.Description,
+						"^^^",
+						current.Cellphone,
+						"^^^",
+						current.Address,
+						"^^^",
+						current.Pdf1,
+						"^^^",
+						current.Pdf2,
+						"^^^",
+						current.Pdf3,
+						"^^^",
+						current.Pdf4,
+						"^^^",
+						current.ObjectTypeId,
+						"^^^",
+						current.ObjectBrandTypeId,
+						"^^^",
+						current.Facebook,
+						"^^^",
+						current.Instagram,
+						"^^^",
+						current.LinkedIn,
+						"^^^",
+						current.Google,
+						"^^^",
+						current.Site,
+						"^^^",
+						current.Twitter,
+						"^^^",
+						current.ParentId,
+						"^^^",
+						current.rate,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.MainObjectId,
+						"^^^",
+						current.ObjectId,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.IsActive,
+						"^^^",
+						current.AgencyService,
+						"***"
+					});
+                }
+                result = text;
             }
-            return str;
+            return result;
         }
 
         [WebMethod]
         public string getAllObjectInCity(string fromDate, string endDate, int isRefresh)
         {
-            List<ObjectInCity> source = null;
-            string str = "";
-            str = " ObjectInCity***Id^^^ObjectId^^^CityId^^^Date***";
+            List<ObjectInCity> list = null;
+            string text = "";
+            text = " ObjectInCity***Id^^^ObjectId^^^CityId^^^Date***";
             string currentDate = this.getServerDateMilis();
             if (isRefresh > 0)
             {
-                if ((fromDate != null) && (fromDate != ""))
+                if (fromDate != null && fromDate != "")
                 {
-                    source = (from x in this.context.ObjectInCities
-                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0)
-                              orderby x.ModifyDate descending
-                              select x).ToList<ObjectInCity>();
+                    list = (from x in this.context.ObjectInCities
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0
+                            orderby x.ModifyDate descending
+                            select x).ToList<ObjectInCity>();
                 }
             }
-            else if ((endDate != null) && (endDate != ""))
+            else if (endDate != null && endDate != "")
             {
-                source = (from x in this.context.ObjectInCities
-                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).ToList<ObjectInCity>();
+                list = (from x in this.context.ObjectInCities
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).ToList<ObjectInCity>();
             }
             else
             {
-                source = (from x in this.context.ObjectInCities
-                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).ToList<ObjectInCity>();
+                list = (from x in this.context.ObjectInCities
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).ToList<ObjectInCity>();
             }
-            if ((source == null) || (source.Count<ObjectInCity>() <= 0))
+            string result;
+            if (list == null || list.Count<ObjectInCity>() <= 0)
             {
-                return "";
+                result = "";
             }
-            str = (str + source.FirstOrDefault<ObjectInCity>().ModifyDate + "***") + source.LastOrDefault<ObjectInCity>().ModifyDate + "***";
-            foreach (ObjectInCity city in source)
+            else
             {
-                object obj2 = str;
-                str = string.Concat(new object[] { obj2, city.Id, "^^^", city.ObjectId, "^^^", city.CityId, "^^^", city.ModifyDate, "***" });
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<ObjectInCity>().ModifyDate,
+					"***",
+					list.LastOrDefault<ObjectInCity>().ModifyDate,
+					"***"
+				});
+                foreach (ObjectInCity current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.ObjectId,
+						"^^^",
+						current.CityId,
+						"^^^",
+						current.ModifyDate,
+						"***"
+					});
+                }
+                result = text;
             }
-            return str;
+            return result;
         }
 
         [WebMethod]
         public string getAllPaper(string fromDate, string endDate, int isRefresh)
         {
-            List<Paper> source = null;
-            string str = "";
-            str = " Paper***Id^^^Title^^^Context^^^UserId^^^Date***";
+            List<Paper> list = null;
+            string text = "";
+            text = " Paper***Id^^^Title^^^Context^^^UserId^^^Date***";
             string currentDate = this.getServerDateMilis();
             if (isRefresh > 0)
             {
-                if ((fromDate != null) && (fromDate != ""))
+                if (fromDate != null && fromDate != "")
                 {
-                    source = (from x in this.context.Papers
-                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0)
-                              orderby x.ModifyDate descending
-                              select x).Take<Paper>(this.recordCount).ToList<Paper>();
+                    list = (from x in this.context.Papers
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<Paper>();
                 }
             }
-            else if ((endDate != null) && (endDate != ""))
+            else if (endDate != null && endDate != "")
             {
-                source = (from x in this.context.Papers
-                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<Paper>(this.recordCount).ToList<Paper>();
+                list = (from x in this.context.Papers
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<Paper>();
             }
             else
             {
-                source = (from x in this.context.Papers
-                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<Paper>(this.recordCount).ToList<Paper>();
+                list = (from x in this.context.Papers
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<Paper>();
             }
-            if ((source == null) || (source.Count<Paper>() <= 0))
+            string result;
+            if (list == null || list.Count<Paper>() <= 0)
             {
-                return "";
+                result = "";
             }
-            str = (str + source.FirstOrDefault<Paper>().ModifyDate + "***") + source.LastOrDefault<Paper>().ModifyDate + "***";
-            foreach (Paper paper in source)
+            else
             {
-                object obj2 = str;
-                str = string.Concat(new object[] { obj2, paper.Id, "^^^", paper.Title, "^^^", paper.Context, "^^^", paper.UserId, "^^^", paper.Date, "***" });
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<Paper>().ModifyDate,
+					"***",
+					list.LastOrDefault<Paper>().ModifyDate,
+					"***"
+				});
+                foreach (Paper current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.Title,
+						"^^^",
+						current.Context,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.Date,
+						"***"
+					});
+                }
+                result = text;
             }
-            return str;
+            return result;
         }
 
         [WebMethod]
         public string getAllTicket(string fromDate, string endDate, int isRefresh)
         {
-            List<Ticket> source = null;
-            string str = "";
-            str = " Ticket***Id^^^Title^^^Desc^^^UserId^^^ Date^^^ TypeId^^^Name^^^Email^^^Mobile^^^Phone^^^Fax^^^ProvinceId^^^UName^^^UEmail^^^UPhonnumber^^^UFax^^^UAdress^^^UMobile^^^Seen^^^Day***";
+            List<Ticket> list = null;
+            string text = "";
+            text = " Ticket***Id^^^Title^^^Desc^^^UserId^^^ Date^^^ TypeId^^^Name^^^Email^^^Mobile^^^Phone^^^Fax^^^ProvinceId^^^UName^^^UEmail^^^UPhonnumber^^^UFax^^^UAdress^^^UMobile^^^Seen^^^Day***";
             string currentDate = this.getServerDateMilis();
             if (isRefresh > 0)
             {
-                if ((fromDate != null) && (fromDate != ""))
+                if (fromDate != null && fromDate != "")
                 {
-                    source = (from x in this.context.Tickets
-                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0)
-                              orderby x.ModifyDate descending
-                              select x).Take<Ticket>(this.recordCount).ToList<Ticket>();
+                    list = (from x in this.context.Tickets
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<Ticket>();
                 }
             }
-            else if ((endDate != null) && (endDate != ""))
+            else if (endDate != null && endDate != "")
             {
-                source = (from x in this.context.Tickets
-                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<Ticket>(this.recordCount).ToList<Ticket>();
+                list = (from x in this.context.Tickets
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<Ticket>();
             }
             else
             {
-                source = (from x in this.context.Tickets
-                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<Ticket>(this.recordCount).ToList<Ticket>();
+                list = (from x in this.context.Tickets
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<Ticket>();
             }
-            if ((source == null) || (source.Count<Ticket>() <= 0))
+            string result;
+            if (list == null || list.Count<Ticket>() <= 0)
             {
-                return "";
+                result = "";
             }
-            str = (str + source.FirstOrDefault<Ticket>().ModifyDate + "***") + source.LastOrDefault<Ticket>().ModifyDate + "***";
-            foreach (Ticket ticket in source)
+            else
             {
-                object obj2 = str;
-                str = string.Concat(new object[] { 
-                    obj2, ticket.Id, "^^^", ticket.Title, "^^^", ticket.Desc, "^^^", ticket.UserId, "^^^", ticket.Date, "^^^", ticket.TypeId, "^^^", ticket.Name, "^^^", ticket.Email, 
-                    "^^^", ticket.Mobile, "^^^", ticket.Phone, "^^^", ticket.Fax, "^^^", ticket.ProvinceId, " ^^^", ticket.UName, "^^^", ticket.UEmail, "^^^", ticket.UPhonnumber, "^^^", ticket.UFax, 
-                    "^^^", ticket.UAdress, "^^^", ticket.UMobile, "^^^0^^^"+ticket.Day+"***"
-                 });
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<Ticket>().ModifyDate,
+					"***",
+					list.LastOrDefault<Ticket>().ModifyDate,
+					"***"
+				});
+                foreach (Ticket current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.Title,
+						"^^^",
+						current.Desc,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.TypeId,
+						"^^^",
+						current.Name,
+						"^^^",
+						current.Email,
+						"^^^",
+						current.Mobile,
+						"^^^",
+						current.Phone,
+						"^^^",
+						current.Fax,
+						"^^^",
+						current.ProvinceId,
+						" ^^^",
+						current.UName,
+						"^^^",
+						current.UEmail,
+						"^^^",
+						current.UPhonnumber,
+						"^^^",
+						current.UFax,
+						"^^^",
+						current.UAdress,
+						"^^^",
+						current.UMobile,
+						"^^^0^^^" + current.Day + "***"
+					});
+                }
+                result = text;
             }
-            return str;
+            return result;
         }
 
         [WebMethod]
         public string getAllUpdateDetails(string fromDate, string endDate, int isRefresh)
         {
-            string[] strArray = fromDate.Split(new char[] { '-' });
-            string[] strArray2 = endDate.Split(new char[] { '-' });
-            string str = "";
-            string str2 = "";
-            str2 = this.getAllCmtInPaper(strArray[0], strArray2[0], isRefresh);
-            if (str2 != "")
+            string[] array = fromDate.Split(new char[]
+			{
+				'-'
+			});
+            string[] array2 = endDate.Split(new char[]
+			{
+				'-'
+			});
+            string text = "";
+            string text2 = this.getAllCmtInPaper(array[0], array2[0], isRefresh);
+            if (text2 != "")
             {
-                str = str + str2 + "&&&";
+                text = text + text2 + "&&&";
             }
-            str2 = this.getAllCommentInFroum(strArray[1], strArray2[1], isRefresh);
-            if (str2 != "")
+            text2 = this.getAllCommentInFroum(array[1], array2[1], isRefresh);
+            if (text2 != "")
             {
-                str = str + str2 + "&&&";
+                text = text + text2 + "&&&";
             }
-            str2 = this.getAllCommentInObject(strArray[2], strArray2[2], isRefresh);
-            if (str2 != "")
+            text2 = this.getAllCommentInObject(array[2], array2[2], isRefresh);
+            if (text2 != "")
             {
-                str = str + str2 + "&&&";
+                text = text + text2 + "&&&";
             }
-            str2 = this.getAllLikeInFroum(strArray[3], strArray2[3], isRefresh);
-            if (str2 != "")
+            text2 = this.getAllLikeInFroum(array[3], array2[3], isRefresh);
+            if (text2 != "")
             {
-                str = str + str2 + "&&&";
+                text = text + text2 + "&&&";
             }
-            str2 = this.getAllLikeInObject(strArray[4], strArray2[4], isRefresh);
-            if (str2 != "")
+            text2 = this.getAllLikeInObject(array[4], array2[4], isRefresh);
+            if (text2 != "")
             {
-                str = str + str2 + "&&&";
+                text = text + text2 + "&&&";
             }
-            str2 = this.getAllLikeInPaper(strArray[5], strArray2[5], isRefresh);
-            if (str2 != "")
+            text2 = this.getAllLikeInPaper(array[5], array2[5], isRefresh);
+            if (text2 != "")
             {
-                str = str + str2 + "&&&";
+                text = text + text2 + "&&&";
             }
-            str2 = this.getAllLikeInComment(strArray[6], strArray2[6], isRefresh);
-            if (str2 != "")
+            text2 = this.getAllLikeInComment(array[6], array2[6], isRefresh);
+            if (text2 != "")
             {
-                str = str + str2 + "&&&";
+                text = text + text2 + "&&&";
             }
-            str2 = this.getAllLikeInCommentObject(strArray[7], strArray2[7], isRefresh);
-            if (str2 != "")
+            text2 = this.getAllLikeInCommentObject(array[7], array2[7], isRefresh);
+            if (text2 != "")
             {
-                str = str + str2 + "&&&";
+                text = text + text2 + "&&&";
             }
-            str2 = this.getAllObjectInCity(strArray[8], strArray2[8], isRefresh);
-            if (str2 != "")
+            text2 = this.getAllObjectInCity(array[8], array2[8], isRefresh);
+            if (text2 != "")
             {
-                str = str + str2 + "&&&";
+                text = text + text2 + "&&&";
             }
-
-            str2 = this.getAllCommentInPost(strArray[1], strArray2[1], isRefresh);
-            if (str2 != "")
+            text2 = this.getAllCommentInPost(array[1], array2[1], isRefresh);
+            if (text2 != "")
             {
-                str = str + str2 + "&&&";
+                text = text + text2 + "&&&";
             }
-
-            str2 = this.getAllLikeInPost(strArray[1], strArray2[1], isRefresh);
-            if (str2 != "")
+            text2 = this.getAllLikeInPost(array[1], array2[1], isRefresh);
+            if (text2 != "")
             {
-                str = str + str2 + "&&&";
+                text = text + text2 + "&&&";
             }
-            str2 = this.getAllLikeInCommentPost(strArray[1], strArray2[1], isRefresh);
-            if (str2 != "")
+            text2 = this.getAllLikeInCommentPost(array[1], array2[1], isRefresh);
+            if (text2 != "")
             {
-                str = str + str2 + "&&&";
+                text = text + text2 + "&&&";
             }
-            return str;
+            return text;
         }
 
         [WebMethod]
         public string getAllUpdateMaster(string fromDate, string endDate, int isRefresh)
         {
-            string[] strArray = fromDate.Split(new char[] { '-' });
-            string[] strArray2 = endDate.Split(new char[] { '-' });
-            string str = "";
-            string str2 = "";
-            str2 = this.getAllAnad(strArray[0], strArray2[0], isRefresh);
-            if (str2 != "")
+            string[] array = fromDate.Split(new char[]
+			{
+				'-'
+			});
+            string[] array2 = endDate.Split(new char[]
+			{
+				'-'
+			});
+            string text = "";
+            string text2 = this.getAllAnad(array[0], array2[0], isRefresh);
+            if (text2 != "")
             {
-                str = str + str2 + "&&&";
+                text = text + text2 + "&&&";
             }
-            str2 = this.getAllFroum(strArray[1], strArray2[1], isRefresh);
-            if (str2 != "")
+            text2 = this.getAllFroum(array[1], array2[1], isRefresh);
+            if (text2 != "")
             {
-                str = str + str2 + "&&&";
+                text = text + text2 + "&&&";
             }
-            str2 = this.getAllNews(strArray[2], strArray2[2], isRefresh);
-            if (str2 != "")
+            text2 = this.getAllNews(array[2], array2[2], isRefresh);
+            if (text2 != "")
             {
-                str = str + str2 + "&&&";
+                text = text + text2 + "&&&";
             }
-            str2 = this.getAllObject(strArray[3], strArray2[3], isRefresh);
-            if (str2 != "")
+            text2 = this.getAllObject(array[3], array2[3], isRefresh);
+            if (text2 != "")
             {
-                str = str + str2 + "&&&";
+                text = text + text2 + "&&&";
             }
-            str2 = this.getAllPaper(strArray[4], strArray2[4], isRefresh);
-            if (str2 != "")
+            text2 = this.getAllPaper(array[4], array2[4], isRefresh);
+            if (text2 != "")
             {
-                str = str + str2 + "&&&";
+                text = text + text2 + "&&&";
             }
-            str2 = this.getAllTicket(strArray[5], strArray2[5], isRefresh);
-            if (str2 != "")
+            text2 = this.getAllTicket(array[5], array2[5], isRefresh);
+            if (text2 != "")
             {
-                str = str + str2 + "&&&";
+                text = text + text2 + "&&&";
             }
-            str2 = this.getAllUser(strArray[6], strArray2[6], isRefresh);
-            if (str2 != "")
+            text2 = this.getAllUser(array[6], array2[6], isRefresh);
+            if (text2 != "")
             {
-                str = str + str2 + "&&&";
+                text = text + text2 + "&&&";
             }
-            str2 = this.getAllObjectInCity("", "", isRefresh);
-            if (str2 != "")
+            text2 = this.getAllObjectInCity("", "", isRefresh);
+            if (text2 != "")
             {
-                str = str + str2 + "&&&";
+                text = text + text2 + "&&&";
             }
-            str2 = this.getAllPost("", "", isRefresh);
-            if (str2 != "")
+            text2 = this.getAllPost("", "", isRefresh);
+            if (text2 != "")
             {
-                str = str + str2 + "&&&";
+                text = text + text2 + "&&&";
+            }
+
+            text2 = this.getAllSubAdmin("", "", isRefresh);
+            if (text2 != "")
+            {
+                text = text + text2 + "&&&";
             }
 
 
-            return str;
+            return text;
         }
 
         [WebMethod]
         public string getAllUser(string fromDate, string endDate, int isRefresh)
         {
-            List<User> source = null;
-            string str = "";
-            str = "Users***Id^^^Name^^^Email^^^Password^^^Phonenumber^^^mobailenumber^^^Faxnumber^^^Address^^^Date^^^ShowInfoItem^^^BirthDay^^^CityId***";
+            List<User> list = null;
+            string text = "";
+            text = "Users***Id^^^Name^^^Email^^^Password^^^Phonenumber^^^mobailenumber^^^Faxnumber^^^Address^^^Date^^^ShowInfoItem^^^BirthDay^^^CityId***";
             string currentDate = this.getServerDateMilis();
             if (isRefresh > 0)
             {
-                if ((fromDate != null) && (fromDate != ""))
+                if (fromDate != null && fromDate != "")
                 {
-                    source = (from x in this.context.Users
-                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0)
-                              orderby x.ModifyDate descending
-                              select x).Take<User>(this.recordCount).ToList<User>();
+                    list = (from x in this.context.Users
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<User>();
                 }
             }
-            else if ((endDate != null) && (endDate != ""))
+            else if (endDate != null && endDate != "")
             {
-                source = (from x in this.context.Users
-                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<User>(this.recordCount).ToList<User>();
+                list = (from x in this.context.Users
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<User>();
             }
             else
             {
-                source = (from x in this.context.Users
-                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<User>(this.recordCount).ToList<User>();
+                list = (from x in this.context.Users
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<User>();
             }
-            if ((source == null) || (source.Count<User>() <= 0))
+            string result;
+            if (list == null || list.Count<User>() <= 0)
             {
-                return "";
+                result = "";
             }
-            str = (str + source.FirstOrDefault<User>().ModifyDate + "***") + source.LastOrDefault<User>().ModifyDate + "***";
-            foreach (User user in source)
+            else
             {
-                object obj2 = str;
-                str = string.Concat(new object[] { 
-                    obj2, user.Id, "^^^", user.Name, "^^^", user.Email, "^^^", user.Password, "^^^", user.Phonenumber, "^^^", user.Mobailenumber, "^^^", user.Faxnumber, "^^^", user.Address, 
-                    "^^^", user.Date,"^^^",user.ShowInfoItem,"^^^",user.BirthDay,"^^^",user.CityId ,"***"
-                 });
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<User>().ModifyDate,
+					"***",
+					list.LastOrDefault<User>().ModifyDate,
+					"***"
+				});
+                foreach (User current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.Name,
+						"^^^",
+						current.Email,
+						"^^^",
+						current.Password,
+						"^^^",
+						current.Phonenumber,
+						"^^^",
+						current.Mobailenumber,
+						"^^^",
+						current.Faxnumber,
+						"^^^",
+						current.Address,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.ShowInfoItem,
+						"^^^",
+						current.BirthDay,
+						"^^^",
+						current.CityId,
+						"***"
+					});
+                }
+                result = text;
             }
-            return str;
+            return result;
         }
 
         [WebMethod]
         public string getAllPost(string fromDate, string endDate, int isRefresh)
         {
-            List<Post> source = null;
-            string str = "";
-            str = "Post***Id^^^UserId^^^objectId^^^Description^^^Seen^^^Submit^^^Date^^^seenBefore***";
+            List<Post> list = null;
+            string text = "";
+            text = "Post***Id^^^UserId^^^objectId^^^Description^^^Seen^^^Submit^^^Date^^^seenBefore***";
             string currentDate = this.getServerDateMilis();
             if (isRefresh > 0)
             {
-                if ((fromDate != null) && (fromDate != ""))
+                if (fromDate != null && fromDate != "")
                 {
-                    source = (from x in this.context.Posts
-                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0)
-                              orderby x.ModifyDate descending
-                              select x).Take<Post>(this.recordCount).ToList<Post>();
+                    list = (from x in this.context.Posts
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<Post>();
                 }
             }
-            else if ((endDate != null) && (endDate != ""))
+            else if (endDate != null && endDate != "")
             {
-                source = (from x in this.context.Posts
-                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<Post>(this.recordCount).ToList<Post>();
+                list = (from x in this.context.Posts
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<Post>();
             }
             else
             {
-                source = (from x in this.context.Posts
-                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0)
-                          orderby x.ModifyDate descending
-                          select x).Take<Post>(this.recordCount).ToList<Post>();
+                list = (from x in this.context.Posts
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<Post>();
             }
-            if ((source == null) || (source.Count<Post>() <= 0))
+            string result;
+            if (list == null || list.Count<Post>() <= 0)
             {
-                return "";
+                result = "";
             }
-            str = (str + source.FirstOrDefault<Post>().ModifyDate + "***") + source.LastOrDefault<Post>().ModifyDate + "***";
-            foreach (Post post in source)
+            else
             {
-                object obj2 = str;
-                str = string.Concat(new object[] { 
-                    obj2, post.Id, "^^^", post.UserId, "^^^",post.ObjectId ,"^^^", post.Description, "^^^", post.Seen, "^^^", post.Submit, "^^^", post.Date, "^^^", post.seenBefore,"***"
-                 });
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<Post>().ModifyDate,
+					"***",
+					list.LastOrDefault<Post>().ModifyDate,
+					"***"
+				});
+                foreach (Post current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.ObjectId,
+						"^^^",
+						current.Description,
+						"^^^",
+						current.Seen,
+						"^^^",
+						current.Submit,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.seenBefore,
+						"***"
+					});
+                }
+                result = text;
             }
-            return str;
+            return result;
         }
 
-        public string getAllPostByUserId(string fromDate, string endDate, int isRefresh,int userId)
+        [WebMethod]
+        public string getAllSubAdmin(string fromDate, string endDate, int isRefresh)
         {
-            List<Post> source = null;
-            string str = "";
-            str = "Post***Id^^^UserId^^^Description^^^Seen^^^Submit^^^Date^^^seenBefore***";
+            List<SubAdmin> list = null;
+            string text = "";
+            text = "SubAdmin***Id^^^UserId^^^objectId^^^AdminId^^^Date^^^ModifyDate***";
             string currentDate = this.getServerDateMilis();
             if (isRefresh > 0)
             {
-                if ((fromDate != null) && (fromDate != ""))
+                if (fromDate != null && fromDate != "")
                 {
-                    source = (from x in this.context.Posts
-                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0) && x.UserId == userId
-                              orderby x.ModifyDate descending
-                              select x).Take<Post>(this.recordCount).ToList<Post>();
+                    list = (from x in this.context.SubAdmins
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<SubAdmin>();
                 }
             }
-            else if ((endDate != null) && (endDate != ""))
+            else if (endDate != null && endDate != "")
             {
-                source = (from x in this.context.Posts
-                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0) && x.UserId == userId
-                          orderby x.ModifyDate descending
-                          select x).Take<Post>(this.recordCount).ToList<Post>();
+                list = (from x in this.context.SubAdmins
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<SubAdmin>();
             }
             else
             {
-                source = (from x in this.context.Posts
-                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0) && x.UserId == userId
-                          orderby x.ModifyDate descending
-                          select x).Take<Post>(this.recordCount).ToList<Post>();
+                list = (from x in this.context.SubAdmins
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<SubAdmin>();
             }
-            if ((source == null) || (source.Count<Post>() <= 0))
+            string result;
+            if (list == null || list.Count<SubAdmin>() <= 0)
             {
-                return "";
+                result = "";
             }
-            str = (str + source.FirstOrDefault<Post>().ModifyDate + "***") + source.LastOrDefault<Post>().ModifyDate + "***";
-            foreach (Post post in source)
+            else
             {
-                object obj2 = str;
-                str = string.Concat(new object[] { 
-                    obj2, post.Id, "^^^", post.UserId, "^^^", post.Description, "^^^", post.Seen, "^^^", post.Submit, "^^^", post.Date, "^^^", post.seenBefore,"***"
-                 });
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<SubAdmin>().ModifyDate,
+					"***",
+					list.LastOrDefault<SubAdmin>().ModifyDate,
+					"***"
+				});
+                foreach (SubAdmin current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.ObjectId,
+						"^^^",
+						current.AdminId,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.ModifyDate,
+						"***"
+					});
+                }
+                result = text;
             }
-            return str;
+            return result;
+        }
+
+        [WebMethod]
+        public string getAllSubAdminByObjectId(int objectId)
+        {
+            List<SubAdmin> list = null;
+            string text = "";
+            text = "SubAdmin***Id^^^UserId^^^objectId^^^AdminId^^^Date^^^ModifyDate***";
+            string currentDate = this.getServerDateMilis();
+           
+            list = (from x in this.context.SubAdmins
+                    where x.ObjectId == objectId
+                    orderby x.ModifyDate descending
+                    select x).ToList<SubAdmin>();
+            
+            string result;
+            if (list == null || list.Count<SubAdmin>() <= 0)
+            {
+                result = "";
+            }
+            else
+            {
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<SubAdmin>().ModifyDate,
+					"***",
+					list.LastOrDefault<SubAdmin>().ModifyDate,
+					"***"
+				});
+                foreach (SubAdmin current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.ObjectId,
+						"^^^",
+						current.AdminId,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.ModifyDate,
+						"***"
+					});
+                }
+                result = text;
+            }
+            return result;
+        }
+
+        public string getAllPostByUserId(string fromDate, string endDate, int isRefresh, int userId)
+        {
+            List<Post> list = null;
+            string text = "";
+            text = "Post***Id^^^UserId^^^Description^^^Seen^^^Submit^^^Date^^^seenBefore***";
+            string currentDate = this.getServerDateMilis();
+            if (isRefresh > 0)
+            {
+                if (fromDate != null && fromDate != "")
+                {
+                    list = (from x in this.context.Posts
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0 && x.UserId == userId
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<Post>();
+                }
+            }
+            else if (endDate != null && endDate != "")
+            {
+                list = (from x in this.context.Posts
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0 && x.UserId == userId
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<Post>();
+            }
+            else
+            {
+                list = (from x in this.context.Posts
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0 && x.UserId == userId
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<Post>();
+            }
+            string result;
+            if (list == null || list.Count<Post>() <= 0)
+            {
+                result = "";
+            }
+            else
+            {
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<Post>().ModifyDate,
+					"***",
+					list.LastOrDefault<Post>().ModifyDate,
+					"***"
+				});
+                foreach (Post current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.Description,
+						"^^^",
+						current.Seen,
+						"^^^",
+						current.Submit,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.seenBefore,
+						"***"
+					});
+                }
+                result = text;
+            }
+            return result;
         }
 
         [WebMethod]
         public string getAllPostByObjectId(string fromDate, string endDate, int isRefresh, int objectId)
         {
-            List<Post> source = null;
-            string str = "";
-            str = "Post***Id^^^UserId^^^Description^^^Seen^^^Submit^^^Date^^^seenBefore***";
+            List<Post> list = null;
+            string text = "";
+            text = "Post***Id^^^UserId^^^Description^^^Seen^^^Submit^^^Date^^^seenBefore^^^objectId***";
             string currentDate = this.getServerDateMilis();
             if (isRefresh > 0)
             {
-                if ((fromDate != null) && (fromDate != ""))
+                if (fromDate != null && fromDate != "")
                 {
-                    source = (from x in this.context.Posts
-                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0) && x.ObjectId == objectId
-                              orderby x.ModifyDate descending
-                              select x).Take<Post>(this.recordCount).ToList<Post>();
+                    list = (from x in this.context.Posts
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0 && x.ObjectId == (int?)objectId
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<Post>();
                 }
             }
-            else if ((endDate != null) && (endDate != ""))
+            else if (endDate != null && endDate != "")
             {
-                source = (from x in this.context.Posts
-                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0) && x.ObjectId == objectId
-                          orderby x.ModifyDate descending
-                          select x).Take<Post>(this.recordCount).ToList<Post>();
+                list = (from x in this.context.Posts
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0 && x.ObjectId == (int?)objectId
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<Post>();
             }
             else
             {
-                source = (from x in this.context.Posts
-                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0) && x.ObjectId == objectId
-                          orderby x.ModifyDate descending
-                          select x).Take<Post>(this.recordCount).ToList<Post>();
+                list = (from x in this.context.Posts
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0 && x.ObjectId == (int?)objectId
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<Post>();
             }
-            if ((source == null) || (source.Count<Post>() <= 0))
+            string result;
+            if (list == null || list.Count<Post>() <= 0)
             {
-                return "";
+                result = "";
             }
-            str = (str + source.FirstOrDefault<Post>().ModifyDate + "***") + source.LastOrDefault<Post>().ModifyDate + "***";
-            foreach (Post post in source)
+            else
             {
-                object obj2 = str;
-                str = string.Concat(new object[] { 
-                    obj2, post.Id, "^^^", post.UserId, "^^^", post.Description, "^^^", post.Seen, "^^^", post.Submit, "^^^", post.Date, "^^^", post.seenBefore,"***"
-                 });
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<Post>().ModifyDate,
+					"***",
+					list.LastOrDefault<Post>().ModifyDate,
+					"***"
+				});
+                foreach (Post current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.Description,
+						"^^^",
+						current.Seen,
+						"^^^",
+						current.Submit,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.seenBefore,
+						"^^^",
+						current.ObjectId,
+						"^^^",
+						"***"
+					});
+                }
+                result = text;
             }
-            return str;
+            return result;
         }
 
         [WebMethod]
-        public string getAllPostByUserIdAndObjectId(string fromDate, string endDate, int isRefresh,int userId, int objectId)
+        public string getAllPostByUserIdAndObjectId(string fromDate, string endDate, int isRefresh, int userId, int objectId)
         {
-            List<Post> source = null;
-            string str = "";
-            str = "Post***Id^^^UserId^^^Description^^^Seen^^^Submit^^^Date^^^seenBefore***";
+            List<Post> list = null;
+            string text = "";
+            text = "Post***Id^^^UserId^^^Description^^^Seen^^^Submit^^^Date^^^seenBefore***";
             string currentDate = this.getServerDateMilis();
             if (isRefresh > 0)
             {
-                if ((fromDate != null) && (fromDate != ""))
+                if (fromDate != null && fromDate != "")
                 {
-                    source = (from x in this.context.Posts
-                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0) && x.ObjectId == objectId && x.UserId == userId
-                              orderby x.ModifyDate descending
-                              select x).Take<Post>(this.recordCount).ToList<Post>();
+                    list = (from x in this.context.Posts
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0 && x.ObjectId == (int?)objectId && x.UserId == userId
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<Post>();
                 }
             }
-            else if ((endDate != null) && (endDate != ""))
+            else if (endDate != null && endDate != "")
             {
-                source = (from x in this.context.Posts
-                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0) && x.ObjectId == objectId && x.UserId == userId
-                          orderby x.ModifyDate descending
-                          select x).Take<Post>(this.recordCount).ToList<Post>();
+                list = (from x in this.context.Posts
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0 && x.ObjectId == (int?)objectId && x.UserId == userId
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<Post>();
             }
             else
             {
-                source = (from x in this.context.Posts
-                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0) && x.ObjectId == objectId && x.UserId == userId
-                          orderby x.ModifyDate descending
-                          select x).Take<Post>(this.recordCount).ToList<Post>();
+                list = (from x in this.context.Posts
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0 && x.ObjectId == (int?)objectId && x.UserId == userId
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<Post>();
             }
-            if ((source == null) || (source.Count<Post>() <= 0))
+            string result;
+            if (list == null || list.Count<Post>() <= 0)
             {
-                return "";
+                result = "";
             }
-            str = (str + source.FirstOrDefault<Post>().ModifyDate + "***") + source.LastOrDefault<Post>().ModifyDate + "***";
-            foreach (Post post in source)
+            else
             {
-                object obj2 = str;
-                str = string.Concat(new object[] { 
-                    obj2, post.Id, "^^^", post.UserId, "^^^", post.Description, "^^^", post.Seen, "^^^", post.Submit, "^^^", post.Date, "^^^", post.seenBefore,"***"
-                 });
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<Post>().ModifyDate,
+					"***",
+					list.LastOrDefault<Post>().ModifyDate,
+					"***"
+				});
+                foreach (Post current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.Description,
+						"^^^",
+						current.Seen,
+						"^^^",
+						current.Submit,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.seenBefore,
+						"***"
+					});
+                }
+                result = text;
             }
-            return str;
+            return result;
         }
-
 
         private DateTime getCuurentDate()
         {
@@ -1255,133 +2126,145 @@
         [WebMethod]
         public string getCuurentServerDate()
         {
-            return (DateTime.Now.ToShortDateString() + DateTime.Now.ToShortTimeString());
+            return DateTime.Now.ToShortDateString() + DateTime.Now.ToShortTimeString();
         }
 
         [WebMethod]
         public byte[] getAnadImage(string tableName, int id, string fromDate)
         {
-            Service.Anad anad;
-            byte[] buffer = new byte[1000];
-            if ((fromDate == null) || ("" == fromDate))
+            byte[] array = null;
+            byte[] result;
+            if (fromDate == null || "" == fromDate)
             {
-                anad = (from x in this.context.Anads
-                        where x.Id == id
-                        select x).FirstOrDefault<Service.Anad>();
-                if ((anad != null) && (anad.Image != null))
+                Anad anad = (from x in this.context.Anads
+                             where x.Id == id
+                             select x).FirstOrDefault<Anad>();
+                if (anad != null && anad.Image != null)
                 {
-                    buffer = anad.Image.ToArray();
+                    array = anad.Image.ToArray();
                 }
-                return buffer;
+                result = array;
             }
-            anad = (from x in this.context.Anads
-                    where (x.ImageServerDate != null) && (fromDate.CompareTo(x.ImageServerDate) < 0)
-                    select x).FirstOrDefault<Service.Anad>();
-            if ((anad != null) && (anad.Image != null))
+            else
             {
-                buffer = anad.Image.ToArray();
+                Anad anad = (from x in this.context.Anads
+                             where x.ImageServerDate != null && fromDate.CompareTo(x.ImageServerDate) < 0 && x.Id == id
+                             select x).FirstOrDefault<Anad>();
+                if (anad != null && anad.Image != null)
+                {
+                    array = anad.Image.ToArray();
+                }
+                result = array;
             }
-            return buffer;
+            return result;
         }
 
         [WebMethod]
         public byte[] getPostImage(string tableName, int id, string fromDate)
         {
-            Service.Post post;
-            byte[] buffer = new byte[1000];
-            post = (from x in this.context.Posts
-                    where x.Id == id
-                    select x).FirstOrDefault<Service.Post>();
-            if ((post != null) && (post.Photo != null))
+            byte[] result = null;
+            if (fromDate == null || "".Equals(fromDate))
             {
-                buffer = post.Photo.ToArray();
+                Post post = (from x in this.context.Posts
+                             where x.Id == id
+                             select x).FirstOrDefault<Post>();
+                if (post != null && post.Photo != null)
+                {
+                    result = post.Photo.ToArray();
+                }
             }
-            return buffer;
+            else
+            {
+                Post post = (from x in this.context.Posts
+                             where x.Id == id && fromDate.CompareTo(x.ImageServerDate) < 0
+                             select x).FirstOrDefault<Post>();
+                if (post != null && post.Photo != null)
+                {
+                    result = post.Photo.ToArray();
+                }
+            }
+            return result;
         }
 
         [WebMethod]
         public byte[] getObject1Image(string tableName, int id, string fromDate)
         {
-            Service.Object obj2;
-            byte[] buffer = new byte[1000];
-            if ((fromDate == null) || ("".Equals(fromDate)))
+            byte[] result = null;
+            if (fromDate == null || "".Equals(fromDate))
             {
-                obj2 = (from x in this.context.Objects
-                        where x.Id == id
-                        select x).FirstOrDefault<Service.Object>();
-                if ((obj2 != null) && (obj2.Image1 != null))
+                Object @object = (from x in this.context.Objects
+                                  where x.Id == id
+                                  select x).FirstOrDefault<Object>();
+                if (@object != null && @object.Image1 != null)
                 {
-                    buffer = obj2.Image1.ToArray();
+                    result = @object.Image1.ToArray();
                 }
             }
             else
             {
-                obj2 = (from x in this.context.Objects
-                        where x.Id == id && (x.Image1Date != null) && (fromDate.CompareTo(x.Image1Date) > 0)
-                        select x).FirstOrDefault<Service.Object>();
-                if ((obj2 != null) && (obj2.Image1 != null))
+                Object @object = (from x in this.context.Objects
+                                  where x.Id == id && x.Image1Date != null && fromDate.CompareTo(x.Image1Date) > 0
+                                  select x).FirstOrDefault<Object>();
+                if (@object != null && @object.Image1 != null)
                 {
-                    buffer = obj2.Image1.ToArray();
+                    result = @object.Image1.ToArray();
                 }
             }
-            return buffer;
+            return result;
         }
 
         [WebMethod]
         public byte[] getObject2Image(string tableName, int id, string fromDate)
         {
-            Service.Object obj2;
-            byte[] buffer = new byte[1000];
-            if ((fromDate == null) || ("".Equals(fromDate)))
+            byte[] result = null;
+            if (fromDate == null || "".Equals(fromDate))
             {
-                obj2 = (from x in this.context.Objects
-                        where x.Id == id
-                        select x).FirstOrDefault<Service.Object>();
-                if ((obj2 != null) && (obj2.Image2 != null))
+                Object @object = (from x in this.context.Objects
+                                  where x.Id == id
+                                  select x).FirstOrDefault<Object>();
+                if (@object != null && @object.Image2 != null)
                 {
-                    buffer = obj2.Image2.ToArray();
+                    result = @object.Image2.ToArray();
                 }
             }
             else
             {
-                obj2 = (from x in this.context.Objects
-                        where x.Id == id && (x.Image2Date != null) && (fromDate.CompareTo(x.Image2Date) > 0)
-                        select x).FirstOrDefault<Service.Object>();
-                if ((obj2 != null) && (obj2.Image2 != null))
+                Object @object = (from x in this.context.Objects
+                                  where x.Id == id && x.Image2Date != null && fromDate.CompareTo(x.Image2Date) > 0
+                                  select x).FirstOrDefault<Object>();
+                if (@object != null && @object.Image2 != null)
                 {
-                    buffer = obj2.Image2.ToArray();
+                    result = @object.Image2.ToArray();
                 }
             }
-            
-            return buffer;
+            return result;
         }
 
         [WebMethod]
         public byte[] getObject3Image(string tableName, int id, string fromDate)
         {
-            Service.Object obj2;
-            byte[] buffer = new byte[1000];
-            if ((fromDate == null) || ("".Equals(fromDate)))
+            byte[] result = null;
+            if (fromDate == null || "".Equals(fromDate))
             {
-                obj2 = (from x in this.context.Objects
-                        where x.Id == id
-                        select x).FirstOrDefault<Service.Object>();
-                if ((obj2 != null) && (obj2.Image3 != null))
+                Object @object = (from x in this.context.Objects
+                                  where x.Id == id
+                                  select x).FirstOrDefault<Object>();
+                if (@object != null && @object.Image3 != null)
                 {
-                    buffer = obj2.Image3.ToArray();
+                    result = @object.Image3.ToArray();
                 }
             }
             else
             {
-                obj2 = (from x in this.context.Objects
-                        where x.Id == id && (x.Image3Date != null) && (fromDate.CompareTo(x.Image3Date) > 0)
-                        select x).FirstOrDefault<Service.Object>();
-                if ((obj2 != null) && (obj2.Image3 != null))
+                Object @object = (from x in this.context.Objects
+                                  where x.Id == id && x.Image3Date != null && fromDate.CompareTo(x.Image3Date) > 0
+                                  select x).FirstOrDefault<Object>();
+                if (@object != null && @object.Image3 != null)
                 {
-                    buffer = obj2.Image3.ToArray(); 
+                    result = @object.Image3.ToArray();
                 }
             }
-            return buffer;
+            return result;
         }
 
         [WebMethod]
@@ -1393,105 +2276,163 @@
         [WebMethod]
         public string getUserById(string Id)
         {
-            List<User> source = null;
-            string str = "";
-            str = "Users***Id^^^Name^^^Email^^^Password^^^Phonenumber^^^mobailenumber^^^Faxnumber^^^Address^^^Date^^^ShowInfoItem^^^BirthDay^^^CityId***";
-            string[] tempParams = Id.Split(new char[] { '-' });
-            source = (from x in this.context.Users
-                      where tempParams.Contains<string>(x.Id.ToString())
-                      select x).ToList<User>();
-            if ((source == null) || (source.Count<User>() <= 0))
+            string text = "";
+            text = "Users***Id^^^Name^^^Email^^^Password^^^Phonenumber^^^mobailenumber^^^Faxnumber^^^Address^^^Date^^^ShowInfoItem^^^BirthDay^^^CityId***";
+            string[] tempParams = Id.Split(new char[]
+			{
+				'-'
+			});
+            List<User> list = (from x in this.context.Users
+                               where tempParams.Contains(x.Id.ToString())
+                               select x).ToList<User>();
+            if (list == null || list.Count<User>() <= 0)
             {
-                str = "";
+                text = "";
             }
             else
             {
-                str = str + "***" + "***";
-                foreach (User user in source)
+                text += "******";
+                foreach (User current in list)
                 {
-                    object obj2 = str;
-                    str = string.Concat(new object[] { 
-                        obj2, user.Id, "^^^", user.Name, "^^^", user.Email, "^^^", user.Password, "^^^", user.Phonenumber, "^^^", user.Mobailenumber, "^^^", user.Faxnumber, "^^^", user.Address, 
-                        "^^^", user.Date,"^^^",user.ShowInfoItem,"^^^",user.BirthDay,"^^^",user.CityId, "***"
-                     });
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.Name,
+						"^^^",
+						current.Email,
+						"^^^",
+						current.Password,
+						"^^^",
+						current.Phonenumber,
+						"^^^",
+						current.Mobailenumber,
+						"^^^",
+						current.Faxnumber,
+						"^^^",
+						current.Address,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.ShowInfoItem,
+						"^^^",
+						current.BirthDay,
+						"^^^",
+						current.CityId,
+						"***"
+					});
                 }
             }
-            return (str + "&&&");
+            return text + "&&&";
         }
 
         [WebMethod]
         public byte[] getUsersImage(int id, string fromDate)
         {
-            User user;
-            byte[] image = null;
-            if ((fromDate == null) || ("" == fromDate))
+            byte[] array = null;
+            byte[] result;
+            if (fromDate == null || "" == fromDate)
             {
-                user = (from x in this.context.Users
-                        where x.Id == id
-                        select x).FirstOrDefault<User>();
+                User user = (from x in this.context.Users
+                             where x.Id == id
+                             select x).FirstOrDefault<User>();
                 if (user != null && user.Image != null)
                 {
-                    image = user.Image.ToArray();
+                    array = user.Image.ToArray();
                 }
-                return image;
-
+                result = array;
             }
-            user = (from x in this.context.Users
-                    where (x.ImageServerDate != null) && (fromDate.CompareTo(x.ImageServerDate) < 0)
-                    select x).FirstOrDefault<User>();
-            if (user != null && user.Image != null)
+            else
             {
-                image = user.Image.ToArray();
+                User user = (from x in this.context.Users
+                             where x.ImageServerDate != null && fromDate.CompareTo(x.ImageServerDate) < 0 && x.Id == id
+                             select x).FirstOrDefault<User>();
+                if (user != null && user.Image != null)
+                {
+                    array = user.Image.ToArray();
+                }
+                result = array;
             }
-            return image;
+            return result;
         }
+
         [WebMethod]
         public byte[] getTicketImage(int id, string fromDate)
         {
-            Ticket ticket;
-            byte[] image = null;
-            if ((fromDate == null) || ("" == fromDate))
+            byte[] array = null;
+            byte[] result;
+            if (fromDate == null || "" == fromDate)
             {
-                ticket = (from x in this.context.Tickets
-                        where x.Id == id
-                          select x).FirstOrDefault<Ticket>();
+                Ticket ticket = (from x in this.context.Tickets
+                                 where x.Id == id
+                                 select x).FirstOrDefault<Ticket>();
                 if (ticket != null)
                 {
-                    image = ticket.Image;
+                    array = ticket.Image.ToArray();
                 }
-                return image;
+                result = array;
             }
-            ticket = (from x in this.context.Tickets
-                    where (x.ImageServerDate != null) && (fromDate.CompareTo(x.ImageServerDate) < 0)
-                      select x).FirstOrDefault<Ticket>();
-            if (ticket != null)
+            else
             {
-                image = ticket.Image;
+                Ticket ticket = (from x in this.context.Tickets
+                                 where x.ImageServerDate != null && fromDate.CompareTo(x.ImageServerDate) < 0 && x.Id == id
+                                 select x).FirstOrDefault<Ticket>();
+                if (ticket != null)
+                {
+                    array = ticket.Image.ToArray();
+                }
+                result = array;
             }
-            return image;
+            return result;
         }
 
         [WebMethod]
         public string login(string phone, string password)
         {
-            string str = "";
-            IQueryable<User> source = from x in this.context.Users
-                                      where phone.Equals(x.Mobailenumber) && password.Equals(x.Password)
-                                      select x;
-            if (source != null)
+            string text = "";
+            IQueryable<User> queryable = from x in this.context.Users
+                                         where phone.Equals(x.Mobailenumber) && password.Equals(x.Password)
+                                         select x;
+            if (queryable != null)
             {
-                User user = source.FirstOrDefault<User>();
+                User user = queryable.FirstOrDefault<User>();
                 if (user != null)
                 {
-                    str = "Users***Id^^^Name^^^Email^^^Password^^^Phonenumber^^^mobailenumber^^^Faxnumber^^^Address^^^Date^^^ShowInfoItem^^^BirthDay^^^CityId***";
-                    object obj2 = str + "***" + "***";
-                    str = string.Concat(new object[] { 
-                        obj2, user.Id, "^^^", user.Name, "^^^", user.Email, "^^^", user.Password, "^^^", user.Phonenumber, "^^^", user.Mobailenumber, "^^^", user.Faxnumber, "^^^", user.Address, 
-                        "^^^", user.Date,"^^^",user.ShowInfoItem,"^^^",user.BirthDay,"^^^",user.CityId, "***&&&"
-                     });
+                    text = "Users***Id^^^Name^^^Email^^^Password^^^Phonenumber^^^mobailenumber^^^Faxnumber^^^Address^^^Date^^^ShowInfoItem^^^BirthDay^^^CityId***";
+                    object obj = text + "******";
+                    text = string.Concat(new object[]
+					{
+						obj,
+						user.Id,
+						"^^^",
+						user.Name,
+						"^^^",
+						user.Email,
+						"^^^",
+						user.Password,
+						"^^^",
+						user.Phonenumber,
+						"^^^",
+						user.Mobailenumber,
+						"^^^",
+						user.Faxnumber,
+						"^^^",
+						user.Address,
+						"^^^",
+						user.Date,
+						"^^^",
+						user.ShowInfoItem,
+						"^^^",
+						user.BirthDay,
+						"^^^",
+						user.CityId,
+						"***&&&"
+					});
                 }
             }
-            return str;
+            return text;
         }
 
         [WebMethod]
@@ -1516,247 +2457,314 @@
         [WebMethod]
         public string getObject1ImageDate(string Id)
         {
-            Object o = (from c in context.Objects where c.Id == Convert.ToInt32(Id) select c).FirstOrDefault<Object>();
-            string date = "";
-            if (o != null && o.Image1Date!= null)
+            Object @object = (from c in this.context.Objects
+                              where c.Id == Convert.ToInt32(Id)
+                              select c).FirstOrDefault<Object>();
+            string result = "";
+            if (@object != null && @object.Image1Date != null)
             {
-
-                date = o.Image1Date;
+                result = @object.Image1Date;
             }
-            return date;
+            return result;
         }
+
         [WebMethod]
         public string getObject2ImageDate(string Id)
         {
-            Object o = (from c in context.Objects where c.Id == Convert.ToInt32(Id) select c).FirstOrDefault<Object>();
-            string date = "";
-            if (o != null && o.Image2Date != null)
+            Object @object = (from c in this.context.Objects
+                              where c.Id == Convert.ToInt32(Id)
+                              select c).FirstOrDefault<Object>();
+            string result = "";
+            if (@object != null && @object.Image2Date != null)
             {
-
-                date = o.Image2Date;
+                result = @object.Image2Date;
             }
-            return date;
+            return result;
         }
+
         [WebMethod]
         public string getObject3ImageDate(string Id)
         {
-            Object o = (from c in context.Objects where c.Id == Convert.ToInt32(Id) select c).FirstOrDefault<Object>();
-            string date = "";
-            if (o != null && o.Image3Date != null)
+            Object @object = (from c in this.context.Objects
+                              where c.Id == Convert.ToInt32(Id)
+                              select c).FirstOrDefault<Object>();
+            string result = "";
+            if (@object != null && @object.Image3Date != null)
             {
-
-                date = o.Image3Date;
+                result = @object.Image3Date;
             }
-            return date;
+            return result;
         }
 
         [WebMethod]
         public string getUserImageDate(string Id)
         {
-            User o = (from c in context.Users where c.Id == Convert.ToInt32(Id) select c).FirstOrDefault<User>();
-            string date = "";
-            if (o != null && o.ImageServerDate != null)
+            User user = (from c in this.context.Users
+                         where c.Id == Convert.ToInt32(Id)
+                         select c).FirstOrDefault<User>();
+            string result = "";
+            if (user != null && user.ImageServerDate != null)
             {
-
-                date = o.ImageServerDate;
+                result = user.ImageServerDate;
             }
-            return date;
+            return result;
         }
 
         [WebMethod]
         public string getPostImageDate(string Id)
         {
-            Post o = (from c in context.Posts where c.Id == Convert.ToInt32(Id) select c).FirstOrDefault<Post>();
-            string date = "";
-            if (o != null && o.ImageServerDate != null)
+            Post post = (from c in this.context.Posts
+                         where c.Id == Convert.ToInt32(Id)
+                         select c).FirstOrDefault<Post>();
+            string result = "";
+            if (post != null && post.ImageServerDate != null)
             {
-
-                date = o.ImageServerDate;
+                result = post.ImageServerDate;
             }
-            return date;
+            return result;
         }
 
         [WebMethod]
         public string getAnadImageDate(string Id)
         {
-            Anad o = (from c in context.Anads where c.Id == Convert.ToInt32(Id) select c).FirstOrDefault<Anad>();
+            Anad anad = (from c in this.context.Anads
+                         where c.Id == Convert.ToInt32(Id)
+                         select c).FirstOrDefault<Anad>();
             return "";
         }
 
         [WebMethod]
         public string getTicketImageDate(string Id)
         {
-            Ticket o = (from c in context.Tickets where c.Id == Convert.ToInt32(Id) select c).FirstOrDefault<Ticket>();
-            string date = "";
-            if (o != null && o.ImageServerDate != null)
+            Ticket ticket = (from c in this.context.Tickets
+                             where c.Id == Convert.ToInt32(Id)
+                             select c).FirstOrDefault<Ticket>();
+            string result = "";
+            if (ticket != null && ticket.ImageServerDate != null)
             {
-
-                date = o.ImageServerDate;
+                result = ticket.ImageServerDate;
             }
-            return date;
+            return result;
         }
-
 
         [WebMethod]
         public bool recoverPassword(string email)
         {
+            bool result;
             try
             {
                 string password = (from x in this.context.Users
                                    where x.Email == email
                                    select x).First<User>().Password;
-                return true;
+                result = true;
             }
             catch (Exception)
             {
-                return false;
+                result = false;
             }
+            return result;
         }
 
         [WebMethod]
-        public string register(int clientId, string username, string email, string password, string phone, string mobile, int fax, string address, string date)
+        public string register(string username, string email, string password, string phone, string mobile, string fax, string address, string date, string modifyDate, string BirthDay, string cityId)
         {
-            try
+            string result;
+            if (this.context.Users.Any((User x) => x.Mobailenumber == mobile))
             {
-                if (this.context.Users.Any<User>(x => x.Mobailenumber == mobile))
+                result = "";
+            }
+            else
+            {
+                try
                 {
-                    return "-10";
+                    User user = new User
+                    {
+                        Name = username,
+                        Email = email,
+                        Password = password,
+                        Phonenumber = phone,
+                        Mobailenumber = mobile,
+                        Faxnumber = fax,
+                        Address = address,
+                        Date = date,
+                        ModifyDate = date,
+                        BirthDay = BirthDay,
+                        CityId = (cityId != null) ? new int?(Convert.ToInt32(cityId)) : new int?(0)
+                    };
+                    this.context.Users.InsertOnSubmit(user);
+                    this.context.SubmitChanges();
+                    result = user.Id.ToString();
                 }
-                User entity = new User
+                catch (Exception ex)
                 {
-                    Name = username,
-                    Email = email,
-                    Password = password,
-                    Phonenumber = phone,
-                    Mobailenumber = mobile,
-                    Faxnumber = new int?(fax),
-                    Address = address,
-                    Date = date
-                };
-                this.context.Users.InsertOnSubmit(entity);
-                this.context.SubmitChanges();
-                return entity.Id.ToString();
+                    result = ex.Message;
+                }
             }
-            catch (Exception exception)
-            {
-                return exception.Message;
-            }
+            return result;
         }
 
         [WebMethod]
         public string regPhone(string phone)
         {
-            string str = "";
-            IQueryable<User> source = from x in this.context.Users
-                                      where phone.Equals(x.Mobailenumber)
-                                      select x;
-            if (source != null)
+            string text = "";
+            IQueryable<User> queryable = from x in this.context.Users
+                                         where phone.Equals(x.Mobailenumber)
+                                         select x;
+            if (queryable != null)
             {
-                User user = source.FirstOrDefault<User>();
+                User user = queryable.FirstOrDefault<User>();
                 if (user != null)
                 {
-                    str = "Users***Id^^^Name^^^Email^^^Password^^^Phonenumber^^^mobailenumber^^^Faxnumber^^^Address^^^Date^^^ShowInfoItem^^^BirthDay^^^CityId***";
-                    object obj2 = str;
-                    str = string.Concat(new object[] { 
-                        obj2, user.Id, "^^^", user.Name, "^^^", user.Email, "^^^", user.Password, "^^^", user.Phonenumber, "^^^", user.Mobailenumber, "^^^", user.Faxnumber, "^^^", user.Address, 
-                        "^^^", user.Date,"^^^",user.ShowInfoItem,"^^^",user.BirthDay,"^^^",user.CityId, "***&&&"
-                     });
+                    text = "Users***Id^^^Name^^^Email^^^Password^^^Phonenumber^^^mobailenumber^^^Faxnumber^^^Address^^^Date^^^ShowInfoItem^^^BirthDay^^^CityId***";
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						user.Id,
+						"^^^",
+						user.Name,
+						"^^^",
+						user.Email,
+						"^^^",
+						user.Password,
+						"^^^",
+						user.Phonenumber,
+						"^^^",
+						user.Mobailenumber,
+						"^^^",
+						user.Faxnumber,
+						"^^^",
+						user.Address,
+						"^^^",
+						user.Date,
+						"^^^",
+						user.ShowInfoItem,
+						"^^^",
+						user.BirthDay,
+						"^^^",
+						user.CityId,
+						"***&&&"
+					});
                 }
             }
-            return str;
+            return text;
         }
 
         [WebMethod]
         public string Saving(string tableName, string param, string IsUpdate, string Id)
         {
-            Exception exception;
             bool flag = Convert.ToInt32(IsUpdate) > 0;
-            string str = "";
+            string text = "";
             int num = 0;
-            string str2 = "";
-            string str3 = "";
-            string[] strArray = param.Split(new char[] { '-' });
-            string str4 = "";
-            string str5 = "";
-            string str6 = "";
-            for (int i = 0; i < strArray.Length; i++)
+            string text2 = "";
+            string text3 = "";
+            string[] array = param.Split(new char[]
+			{
+				'-'
+			});
+            string text4 = "";
+            for (int i = 0; i < array.Length; i++)
             {
-                if ((strArray[i] != null) && strArray[i].Contains(":"))
+                if (array[i] != null && array[i].Contains(":"))
                 {
-                    str5 = strArray[i].Substring(0, strArray[i].IndexOf(":")) + ",";
-                    str6 = strArray[i].Substring(0, strArray[i].IndexOf(":"));
-                    str4 = strArray[i].Substring(strArray[i].IndexOf(":") + 1, (strArray[i].Length - strArray[i].IndexOf(":")) - 1);
+                    string str = array[i].Substring(0, array[i].IndexOf(":")) + ",";
+                    string text5 = array[i].Substring(0, array[i].IndexOf(":"));
+                    text4 = array[i].Substring(array[i].IndexOf(":") + 1, array[i].Length - array[i].IndexOf(":") - 1);
                     if (flag)
                     {
-                        if ((str4 != null) && (str4 != ""))
+                        if (text4 != null && text4 != "")
                         {
-                            string str9 = str;
-                            str = str9 + str6 + "='" + str4 + "',";
+                            string text6 = text;
+                            text = string.Concat(new string[]
+							{
+								text6,
+								text5,
+								"='",
+								text4,
+								"',"
+							});
                         }
                     }
                     else
                     {
-                        str2 = str2 + str5;
+                        text2 += str;
                         try
                         {
-                            int num3 = Convert.ToInt32(str4);
-                            str3 = str3 + str4 + ",";
+                            int num2 = Convert.ToInt32(text4);
+                            text3 = text3 + text4 + ",";
                         }
-                        catch (Exception exception1)
+                        catch (Exception var_13_186)
                         {
-                            exception = exception1;
-                            str3 = str3 + "'" + str4 + "',";
+                            text3 = text3 + "'" + text4 + "',";
                         }
                     }
                 }
             }
-            if ((str != null) && str.Contains(","))
+            if (text != null && text.Contains(","))
             {
-                str = str.Remove(str.LastIndexOf(","), 1);
+                text = text.Remove(text.LastIndexOf(","), 1);
             }
-            if ((str2 != null) && str2.Contains(","))
+            if (text2 != null && text2.Contains(","))
             {
-                str2 = str2.Remove(str2.LastIndexOf(","), 1);
+                text2 = text2.Remove(text2.LastIndexOf(","), 1);
             }
-            if ((str3 != null) && str3.Contains(","))
+            if (text3 != null && text3.Contains(","))
             {
-                str3 = str3.Remove(str3.LastIndexOf(","), 1);
+                text3 = text3.Remove(text3.LastIndexOf(","), 1);
             }
+
+
+
             if (flag)
             {
-                if (str == "")
+                if (text == "")
                 {
                     num = -1;
                 }
                 else
                 {
-                    int num4 = this.context.ExecuteQuery<int>("UPDATE " + tableName + " SET " + str + " WHERE Id=" + Id, new object[0]).FirstOrDefault<int>();
+                    int value = this.context.ExecuteQuery<int>(string.Concat(new string[]
+					{
+						"UPDATE ",
+						tableName,
+						" SET ",
+						text,
+						" WHERE Id=",
+						Id
+					}), new object[0]).FirstOrDefault<int>();
                     try
                     {
-                        num = Convert.ToInt32(num4);
+                        num = Convert.ToInt32(value);
                     }
-                    catch (Exception exception2)
+                    catch (Exception var_15_2E0)
                     {
-                        exception = exception2;
                         num = -1;
                     }
                 }
             }
-            else if (str3 == "")
+            else if (text3 == "")
             {
                 num = -1;
             }
             else
             {
-                string query = "INSERT INTO " + tableName + " (" + str2 + ") VALUES (" + str3 + ") ; select scope_identity()";
-                decimal num5 = this.context.ExecuteQuery<decimal>(query, new object[0]).First<decimal>();
+                string query = string.Concat(new string[]
+				{
+					"INSERT INTO ",
+					tableName,
+					" (",
+					text2,
+					") VALUES (",
+					text3,
+					") ; select scope_identity()"
+				});
+                decimal value2 = this.context.ExecuteQuery<decimal>(query, new object[0]).First<decimal>();
                 try
                 {
-                    num = Convert.ToInt32(num5);
+                    num = Convert.ToInt32(value2);
                 }
-                catch (Exception exception3)
+                catch (Exception var_18_37B)
                 {
-                    exception = exception3;
                     num = -1;
                 }
             }
@@ -1766,7 +2774,20 @@
         [WebMethod]
         public int savingImage(string tableName, string fieldName, string id, byte[] image)
         {
-            return this.context.ExecuteCommand("Update [" + tableName + "] SET " + fieldName + "={0} , ImageServerDate = '"+getServerDateMilis()+"'  WHERE Id=" + id, new object[] { image });
+            return this.context.ExecuteCommand(string.Concat(new string[]
+			{
+				"Update [",
+				tableName,
+				"] SET ",
+				fieldName,
+				"={0} , ImageServerDate = '",
+				this.getServerDateMilis(),
+				"'  WHERE Id=",
+				id
+			}), new object[]
+			{
+				image
+			});
         }
 
         [WebMethod]
@@ -1776,357 +2797,1201 @@
             bool flag = false;
             bool flag2 = false;
             bool flag3 = false;
-            object[] parameters = new object[3];
-            string str2 = this.getServerDateMilis();
+            object[] array = new object[3];
+            string serverDateMilis = this.getServerDateMilis();
             if (image1 != null)
             {
                 flag = true;
-                str = (str + fieldName1 + "={0}, ") + " Image1Date=" + str2;
+                str = str + fieldName1 + "={0},  Image1Date=" + serverDateMilis;
             }
             if (image2 != null)
             {
                 flag2 = true;
                 if (flag)
                 {
-                    str = str + " , ";
+                    str += " , ";
                 }
-                str = (str + fieldName2 + "={1}, ") + " Image2Date=" + str2;
+                str = str + fieldName2 + "={1},  Image2Date=" + serverDateMilis;
             }
             if (image3 != null)
             {
                 if (flag2 || flag)
                 {
-                    str = str + " , ";
+                    str += " , ";
                 }
                 flag3 = true;
-                str = (str + fieldName3 + "={2}, ") + " Image3Date=" + str2;
+                str = str + fieldName3 + "={2},  Image3Date=" + serverDateMilis;
             }
             if (flag)
             {
-                parameters[0] = image1;
+                array[0] = image1;
             }
             if (flag2)
             {
-                parameters[1] = image2;
+                array[1] = image2;
             }
             if (flag3)
             {
-                parameters[2] = image3;
+                array[2] = image3;
             }
-            int num = this.context.ExecuteCommand(str + " WHERE Id=" + id, parameters);
-            return str2;
+            int num = this.context.ExecuteCommand(str + " WHERE Id=" + id, array);
+            return serverDateMilis;
         }
 
         [WebMethod]
         public string getAllTicketByUserId(string fromDate, string endDate, int isRefresh, int userId)
         {
-            List<Ticket> source = null;
-            string str = "";
-            str = " Ticket***Id^^^Title^^^Desc^^^UserId^^^ Date^^^ TypeId^^^Name^^^Email^^^Mobile^^^Phone^^^Fax^^^ProvinceId^^^UName^^^UEmail^^^UPhonnumber^^^UFax^^^UAdress^^^UMobile^^^Seen^^^Day***";
+            List<Ticket> list = null;
+            string text = "";
+            text = " Ticket***Id^^^Title^^^Desc^^^UserId^^^ Date^^^ TypeId^^^Name^^^Email^^^Mobile^^^Phone^^^Fax^^^ProvinceId^^^UName^^^UEmail^^^UPhonnumber^^^UFax^^^UAdress^^^UMobile^^^Seen^^^Day***";
             string currentDate = this.getServerDateMilis();
             if (isRefresh > 0)
             {
-                if ((fromDate != null) && (fromDate != ""))
+                if (fromDate != null && fromDate != "")
                 {
-                    source = (from x in this.context.Tickets
-                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0) && x.UserId == userId
-                              orderby x.ModifyDate descending
-                              select x).ToList<Ticket>();
+                    list = (from x in this.context.Tickets
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0 && x.UserId == (int?)userId
+                            orderby x.ModifyDate descending
+                            select x).ToList<Ticket>();
                 }
             }
-            else if ((endDate != null) && (endDate != ""))
+            else if (endDate != null && endDate != "")
             {
-                source = (from x in this.context.Tickets
-                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0) && x.UserId == userId
-                          orderby x.ModifyDate descending
-                          select x).ToList<Ticket>();
+                list = (from x in this.context.Tickets
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0 && x.UserId == (int?)userId
+                        orderby x.ModifyDate descending
+                        select x).ToList<Ticket>();
             }
             else
             {
-                source = (from x in this.context.Tickets
-                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0) && x.UserId == userId
-                          orderby x.ModifyDate descending
-                          select x).ToList<Ticket>();
+                list = (from x in this.context.Tickets
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0 && x.UserId == (int?)userId
+                        orderby x.ModifyDate descending
+                        select x).ToList<Ticket>();
             }
-            if ((source == null) || (source.Count<Ticket>() <= 0))
+            string result;
+            if (list == null || list.Count<Ticket>() <= 0)
             {
-                return "";
+                result = "";
             }
-            str = (str + source.FirstOrDefault<Ticket>().ModifyDate + "***") + source.LastOrDefault<Ticket>().ModifyDate + "***";
-            foreach (Ticket ticket in source)
+            else
             {
-                object obj2 = str;
-                str = string.Concat(new object[] { 
-                    obj2, ticket.Id, "^^^", ticket.Title, "^^^", ticket.Desc, "^^^", ticket.UserId, "^^^", ticket.Date, "^^^", ticket.TypeId, "^^^", ticket.Name, "^^^", ticket.Email, 
-                    "^^^", ticket.Mobile, "^^^", ticket.Phone, "^^^", ticket.Fax, "^^^", ticket.ProvinceId, " ^^^", ticket.UName, "^^^", ticket.UEmail, "^^^", ticket.UPhonnumber, "^^^", ticket.UFax, 
-                    "^^^", ticket.UAdress, "^^^", ticket.UMobile, "^^^0^^^"+ticket.Day+"***"
-                 });
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<Ticket>().ModifyDate,
+					"***",
+					list.LastOrDefault<Ticket>().ModifyDate,
+					"***"
+				});
+                foreach (Ticket current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.Title,
+						"^^^",
+						current.Desc,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.TypeId,
+						"^^^",
+						current.Name,
+						"^^^",
+						current.Email,
+						"^^^",
+						current.Mobile,
+						"^^^",
+						current.Phone,
+						"^^^",
+						current.Fax,
+						"^^^",
+						current.ProvinceId,
+						" ^^^",
+						current.UName,
+						"^^^",
+						current.UEmail,
+						"^^^",
+						current.UPhonnumber,
+						"^^^",
+						current.UFax,
+						"^^^",
+						current.UAdress,
+						"^^^",
+						current.UMobile,
+						"^^^0^^^" + current.Day + "***"
+					});
+                }
+                result = text;
             }
-            return str;
+            return result;
         }
-         
+
         [WebMethod]
         public string getAllObjectByUserId(string fromDate, string endDate, int isRefresh, int userId)
         {
-            List<Service.Object> source = null;
-            string str = "";
-            str = " Object***Id^^^Name^^^Phone^^^Email^^^Fax^^^Description^^^Cellphone^^^Address^^^Pdf1^^^Pdf2^^^Pdf3^^^Pdf4^^^ObjectTypeId^^^ObjectBrandTypeId^^^Facebook^^^Instagram^^^LinkedIn^^^Google^^^Site^^^Twitter^^^ParentId^^^rate^^^serverDate^^^MainObjectId^^^ObjectId^^^UserId^^^Date^^^IsActive^^^AgencyService***";
+            List<Object> list = null;
+            string text = "";
+            text = " Object***Id^^^Name^^^Phone^^^Email^^^Fax^^^Description^^^Cellphone^^^Address^^^Pdf1^^^Pdf2^^^Pdf3^^^Pdf4^^^ObjectTypeId^^^ObjectBrandTypeId^^^Facebook^^^Instagram^^^LinkedIn^^^Google^^^Site^^^Twitter^^^ParentId^^^rate^^^serverDate^^^MainObjectId^^^ObjectId^^^UserId^^^Date^^^IsActive^^^AgencyService***";
             string currentDate = this.getServerDateMilis();
             if (isRefresh > 0)
             {
-                if ((fromDate != null) && (fromDate != ""))
+                if (fromDate != null && fromDate != "")
                 {
-                    source = (from x in this.context.Objects
-                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0) && x.UserId == userId
-                              orderby x.ModifyDate descending
-                              select x).ToList<Service.Object>();
+                    list = (from x in this.context.Objects
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0 && x.UserId == (int?)userId
+                            orderby x.ModifyDate descending
+                            select x).ToList<Object>();
                 }
             }
-            else if ((endDate != null) && (endDate != ""))
+            else if (endDate != null && endDate != "")
             {
-                source = (from x in this.context.Objects
-                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0) && x.UserId == userId
-                          orderby x.ModifyDate descending
-                          select x).ToList<Service.Object>();
+                list = (from x in this.context.Objects
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0 && x.UserId == (int?)userId
+                        orderby x.ModifyDate descending
+                        select x).ToList<Object>();
             }
             else
             {
-                source = (from x in this.context.Objects
-                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0) && x.UserId == userId
-                          orderby x.ModifyDate descending
-                          select x).ToList<Service.Object>();
+                list = (from x in this.context.Objects
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0 && x.UserId == (int?)userId
+                        orderby x.ModifyDate descending
+                        select x).ToList<Object>();
             }
-            if ((source == null) || (source.Count<Service.Object>() <= 0))
+            string result;
+            if (list == null || list.Count<Object>() <= 0)
             {
-                return "";
+                result = "";
             }
-            str = (str + source.FirstOrDefault<Service.Object>().ModifyDate + "***") + source.LastOrDefault<Service.Object>().ModifyDate + "***";
-            foreach (Service.Object obj2 in source)
+            else
             {
-                object obj3 = str;
-                str = string.Concat(new object[] { 
-                    obj3, obj2.Id, "^^^", obj2.Name, "^^^", obj2.Phone, "^^^", obj2.Email, "^^^", obj2.Fax, "^^^", obj2.Description, "^^^", obj2.Cellphone, "^^^", obj2.Address, 
-                    "^^^", obj2.Pdf1, "^^^", obj2.Pdf2, "^^^", obj2.Pdf3, "^^^", obj2.Pdf4, "^^^", obj2.ObjectTypeId, "^^^", obj2.ObjectBrandTypeId, "^^^", obj2.Facebook, "^^^", obj2.Instagram, 
-                    "^^^", obj2.LinkedIn, "^^^", obj2.Google, "^^^", obj2.Site, "^^^", obj2.Twitter, "^^^", obj2.ParentId, "^^^", obj2.rate, "^^^", obj2.Date, "^^^", obj2.MainObjectId, 
-                    "^^^", obj2.ObjectId, "^^^", obj2.UserId, "^^^", obj2.Date, "^^^", obj2.IsActive, "^^^", obj2.AgencyService, "***"
-                 });
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<Object>().ModifyDate,
+					"***",
+					list.LastOrDefault<Object>().ModifyDate,
+					"***"
+				});
+                foreach (Object current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.Name,
+						"^^^",
+						current.Phone,
+						"^^^",
+						current.Email,
+						"^^^",
+						current.Fax,
+						"^^^",
+						current.Description,
+						"^^^",
+						current.Cellphone,
+						"^^^",
+						current.Address,
+						"^^^",
+						current.Pdf1,
+						"^^^",
+						current.Pdf2,
+						"^^^",
+						current.Pdf3,
+						"^^^",
+						current.Pdf4,
+						"^^^",
+						current.ObjectTypeId,
+						"^^^",
+						current.ObjectBrandTypeId,
+						"^^^",
+						current.Facebook,
+						"^^^",
+						current.Instagram,
+						"^^^",
+						current.LinkedIn,
+						"^^^",
+						current.Google,
+						"^^^",
+						current.Site,
+						"^^^",
+						current.Twitter,
+						"^^^",
+						current.ParentId,
+						"^^^",
+						current.rate,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.MainObjectId,
+						"^^^",
+						current.ObjectId,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.IsActive,
+						"^^^",
+						current.AgencyService,
+						"***"
+					});
+                }
+                result = text;
             }
-            return str;
+            return result;
         }
 
         [WebMethod]
         public string getAllFroumByUserId(string fromDate, string endDate, int isRefresh, int userId)
         {
-            List<Froum> source = null;
-            string str = "";
-            str = " Froum***Id^^^Title^^^Description^^^UserId^^^Date***";
+            List<Froum> list = null;
+            string text = "";
+            text = " Froum***Id^^^Title^^^Description^^^UserId^^^Date***";
             string currentDate = this.getServerDateMilis();
             if (isRefresh > 0)
             {
-                if ((fromDate != null) && (fromDate != ""))
+                if (fromDate != null && fromDate != "")
                 {
-                    source = (from x in this.context.Froums
-                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0) && x.UserId == userId
-                              orderby x.ModifyDate descending
-                              select x).ToList<Froum>();
+                    list = (from x in this.context.Froums
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0 && x.UserId == (int?)userId
+                            orderby x.ModifyDate descending
+                            select x).ToList<Froum>();
                 }
             }
-            else if ((endDate != null) && (endDate != ""))
+            else if (endDate != null && endDate != "")
             {
-                source = (from x in this.context.Froums
-                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0) && x.UserId == userId
-                          orderby x.ModifyDate descending
-                          select x).ToList<Froum>();
+                list = (from x in this.context.Froums
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0 && x.UserId == (int?)userId
+                        orderby x.ModifyDate descending
+                        select x).ToList<Froum>();
             }
             else
             {
-                source = (from x in this.context.Froums
-                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0) && x.UserId == userId
-                          orderby x.ModifyDate descending
-                          select x).ToList<Froum>();
+                list = (from x in this.context.Froums
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0 && x.UserId == (int?)userId
+                        orderby x.ModifyDate descending
+                        select x).ToList<Froum>();
             }
-            if ((source == null) || (source.Count<Froum>() <= 0))
+            string result;
+            if (list == null || list.Count<Froum>() <= 0)
             {
-                return "";
+                result = "";
             }
-            str = (str + source.FirstOrDefault<Froum>().ModifyDate + "***") + source.LastOrDefault<Froum>().ModifyDate + "***";
-            foreach (Froum froum in source)
+            else
             {
-                object obj2 = str;
-                str = string.Concat(new object[] { obj2, froum.Id, "^^^", froum.Title, "^^^", froum.Description, "^^^", froum.UserId, "^^^", froum.Date, "***" });
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<Froum>().ModifyDate,
+					"***",
+					list.LastOrDefault<Froum>().ModifyDate,
+					"***"
+				});
+                foreach (Froum current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.Title,
+						"^^^",
+						current.Description,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.Date,
+						"***"
+					});
+                }
+                result = text;
             }
-            return str;
+            return result;
         }
 
         [WebMethod]
         public string getAllPaperByUserId(string fromDate, string endDate, int isRefresh, int userId)
         {
-            List<Paper> source = null;
-            string str = "";
-            str = " Paper***Id^^^Title^^^Context^^^UserId^^^Date***";
+            List<Paper> list = null;
+            string text = "";
+            text = " Paper***Id^^^Title^^^Context^^^UserId^^^Date***";
             string currentDate = this.getServerDateMilis();
             if (isRefresh > 0)
             {
-                if ((fromDate != null) && (fromDate != ""))
+                if (fromDate != null && fromDate != "")
                 {
-                    source = (from x in this.context.Papers
-                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0) && x.UserId == userId
-                              orderby x.ModifyDate descending
-                              select x).ToList<Paper>();
+                    list = (from x in this.context.Papers
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0 && x.UserId == (int?)userId
+                            orderby x.ModifyDate descending
+                            select x).ToList<Paper>();
                 }
             }
-            else if ((endDate != null) && (endDate != ""))
+            else if (endDate != null && endDate != "")
             {
-                source = (from x in this.context.Papers
-                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0) && x.UserId == userId
-                          orderby x.ModifyDate descending
-                          select x).ToList<Paper>();
+                list = (from x in this.context.Papers
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0 && x.UserId == (int?)userId
+                        orderby x.ModifyDate descending
+                        select x).ToList<Paper>();
             }
             else
             {
-                source = (from x in this.context.Papers
-                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0) && x.UserId == userId
-                          orderby x.ModifyDate descending
-                          select x).ToList<Paper>();
+                list = (from x in this.context.Papers
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0 && x.UserId == (int?)userId
+                        orderby x.ModifyDate descending
+                        select x).ToList<Paper>();
             }
-            if ((source == null) || (source.Count<Paper>() <= 0))
+            string result;
+            if (list == null || list.Count<Paper>() <= 0)
             {
-                return "";
+                result = "";
             }
-            str = (str + source.FirstOrDefault<Paper>().ModifyDate + "***") + source.LastOrDefault<Paper>().ModifyDate + "***";
-            foreach (Paper paper in source)
+            else
             {
-                object obj2 = str;
-                str = string.Concat(new object[] { obj2, paper.Id, "^^^", paper.Title, "^^^", paper.Context, "^^^", paper.UserId, "^^^", paper.Date, "***" });
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<Paper>().ModifyDate,
+					"***",
+					list.LastOrDefault<Paper>().ModifyDate,
+					"***"
+				});
+                foreach (Paper current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.Title,
+						"^^^",
+						current.Context,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.Date,
+						"***"
+					});
+                }
+                result = text;
             }
-            return str;
+            return result;
         }
 
         [WebMethod]
-        public string getAllLikeInObjectByUserId(string fromDate, string endDate, int isRefresh,int userId)
+        public string getAllObjectLikedByUserId(int userId)
         {
-            List<LikeInObject> source = null;
-            string str = "";
-            str = " LikeInObject***Id^^^UserId^^^PaperId^^^Date^^^CommentId^^^Seen***";
+            string text = " Object***Id^^^Name^^^Phone^^^Email^^^Fax^^^Description^^^Cellphone^^^Address^^^Pdf1^^^Pdf2^^^Pdf3^^^Pdf4^^^ObjectTypeId^^^ObjectBrandTypeId^^^Facebook^^^Instagram^^^LinkedIn^^^Google^^^Site^^^Twitter^^^ParentId^^^rate^^^serverDate^^^MainObjectId^^^ObjectId^^^UserId^^^Date^^^IsActive^^^AgencyService***";
+            string serverDateMilis = this.getServerDateMilis();
+            object obj;
+            List<Object> list = (from obj2 in this.context.Objects
+                                 join lio in this.context.LikeInObjects on (int?)obj2.Id equals lio.ObjectId
+                                 where lio.UserId == userId
+                                 select obj2).ToList<Object>();
+            text = string.Concat(new string[]
+			{
+				text,
+				list.FirstOrDefault<Object>().ModifyDate,
+				"***",
+				list.LastOrDefault<Object>().ModifyDate,
+				"***"
+			});
+            foreach (Object current in list)
+            {
+                obj = text;
+                text = string.Concat(new object[]
+				{
+					obj,
+					current.Id,
+					"^^^",
+					current.Name,
+					"^^^",
+					current.Phone,
+					"^^^",
+					current.Email,
+					"^^^",
+					current.Fax,
+					"^^^",
+					current.Description,
+					"^^^",
+					current.Cellphone,
+					"^^^",
+					current.Address,
+					"^^^",
+					current.Pdf1,
+					"^^^",
+					current.Pdf2,
+					"^^^",
+					current.Pdf3,
+					"^^^",
+					current.Pdf4,
+					"^^^",
+					current.ObjectTypeId,
+					"^^^",
+					current.ObjectBrandTypeId,
+					"^^^",
+					current.Facebook,
+					"^^^",
+					current.Instagram,
+					"^^^",
+					current.LinkedIn,
+					"^^^",
+					current.Google,
+					"^^^",
+					current.Site,
+					"^^^",
+					current.Twitter,
+					"^^^",
+					current.ParentId,
+					"^^^",
+					current.rate,
+					"^^^",
+					current.Date,
+					"^^^",
+					current.MainObjectId,
+					"^^^",
+					current.ObjectId,
+					"^^^",
+					current.UserId,
+					"^^^",
+					current.Date,
+					"^^^",
+					current.IsActive,
+					"^^^",
+					current.AgencyService,
+					"***"
+				});
+            }
+            return text;
+        }
+
+
+        [WebMethod]
+        public string getAllLikeInObjectByUserId(string fromDate, string endDate, int isRefresh, int userId)
+        {
+            List<LikeInObject> list = null;
+            string text = "";
+            text = " LikeInObject***Id^^^UserId^^^PaperId^^^Date^^^LikeType^^^Seen^^^unFollow^^^unFollowDate***";
             string currentDate = this.getServerDateMilis();
             if (isRefresh > 0)
             {
-                if ((fromDate != null) && (fromDate != ""))
+                if (fromDate != null && fromDate != "")
                 {
-                    source = (from x in this.context.LikeInObjects
-                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0) && x.UserId == userId
-                              orderby x.ModifyDate descending
-                              select x).ToList<LikeInObject>();
+                    list = (from x in this.context.LikeInObjects
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0 && x.UserId == (int?)userId
+                            orderby x.ModifyDate descending
+                            select x).ToList<LikeInObject>();
                 }
             }
-            else if ((endDate != null) && (endDate != ""))
+            else if (endDate != null && endDate != "")
             {
-                source = (from x in this.context.LikeInObjects
-                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0) && x.UserId == userId
-                          orderby x.ModifyDate descending
-                          select x).ToList<LikeInObject>();
+                list = (from x in this.context.LikeInObjects
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0 && x.UserId == (int?)userId
+                        orderby x.ModifyDate descending
+                        select x).ToList<LikeInObject>();
             }
             else
             {
-                source = (from x in this.context.LikeInObjects
-                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0)  && x.UserId == userId
-                          orderby x.ModifyDate descending
-                          select x).ToList<LikeInObject>();
+                list = (from x in this.context.LikeInObjects
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0 && x.UserId == (int?)userId
+                        orderby x.ModifyDate descending
+                        select x).ToList<LikeInObject>();
             }
-            if ((source == null) || (source.Count<LikeInObject>() <= 0))
+            string result;
+            if (list == null || list.Count<LikeInObject>() <= 0)
             {
-                return "";
+                result = "";
             }
-            str = (str + source.FirstOrDefault<LikeInObject>().ModifyDate + "***") + source.LastOrDefault<LikeInObject>().ModifyDate + "***";
-            foreach (LikeInObject obj2 in source)
+            else
             {
-                object obj3 = str;
-                str = string.Concat(new object[] { obj3, obj2.Id, "^^^", obj2.UserId, "^^^", obj2.ObjectId, "^^^", obj2.Date, "^^^", obj2.CommentId, "^^^0***" });
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<LikeInObject>().ModifyDate,
+					"***",
+					list.LastOrDefault<LikeInObject>().ModifyDate,
+					"***"
+				});
+                foreach (LikeInObject current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.ObjectId,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.LikeType,
+						"^^^0",
+                        current.unFollow,
+                        "^^^",
+                        current.unFollowDate
+                        ,"***"
+					});
+                }
+                result = text;
             }
-            return str;
+            return result;
+        }
+
+        [WebMethod]
+        public string getAllObjectForUserId(string fromDate, string endDate, int isRefresh, int userId)
+        {
+            string text = " Object***Id^^^Name^^^Phone^^^Email^^^Fax^^^Description^^^Cellphone^^^Address^^^Pdf1^^^Pdf2^^^Pdf3^^^Pdf4^^^ObjectTypeId^^^ObjectBrandTypeId^^^Facebook^^^Instagram^^^LinkedIn^^^Google^^^Site^^^Twitter^^^ParentId^^^rate^^^serverDate^^^MainObjectId^^^ObjectId^^^UserId^^^Date^^^IsActive^^^AgencyService***";
+            string serverDateMilis = this.getServerDateMilis();
+            object obj;
+            List<Object> list = (from obj2 in this.context.Objects
+                                 join lio in this.context.LikeInObjects on (int?)obj2.Id equals lio.ObjectId
+                                 join usr in this.context.Users on lio.UserId equals (int?)usr.Id
+                                 where usr.Id == userId
+                                 select obj2).ToList<Object>();
+            text = string.Concat(new string[]
+			{
+				text,
+				list.FirstOrDefault<Object>().ModifyDate,
+				"***",
+				list.LastOrDefault<Object>().ModifyDate,
+				"***"
+			});
+            foreach (Object current in list)
+            {
+                obj = text;
+                text = string.Concat(new object[]
+				{
+					obj,
+					current.Id,
+					"^^^",
+					current.Name,
+					"^^^",
+					current.Phone,
+					"^^^",
+					current.Email,
+					"^^^",
+					current.Fax,
+					"^^^",
+					current.Description,
+					"^^^",
+					current.Cellphone,
+					"^^^",
+					current.Address,
+					"^^^",
+					current.Pdf1,
+					"^^^",
+					current.Pdf2,
+					"^^^",
+					current.Pdf3,
+					"^^^",
+					current.Pdf4,
+					"^^^",
+					current.ObjectTypeId,
+					"^^^",
+					current.ObjectBrandTypeId,
+					"^^^",
+					current.Facebook,
+					"^^^",
+					current.Instagram,
+					"^^^",
+					current.LinkedIn,
+					"^^^",
+					current.Google,
+					"^^^",
+					current.Site,
+					"^^^",
+					current.Twitter,
+					"^^^",
+					current.ParentId,
+					"^^^",
+					current.rate,
+					"^^^",
+					current.Date,
+					"^^^",
+					current.MainObjectId,
+					"^^^",
+					current.ObjectId,
+					"^^^",
+					current.UserId,
+					"^^^",
+					current.Date,
+					"^^^",
+					current.IsActive,
+					"^^^",
+					current.AgencyService,
+					"***"
+				});
+            }
+            return text;
         }
 
         [WebMethod]
         public string getAllAnadByUserId(string fromDate, string endDate, int isRefresh, int userId)
         {
-            List<Anad> source = null;
-            string str = "";
-            str = " Anad***Id^^^ObjectId^^^Date^^^ TypeId^^^ ProvinceId^^^ Seen^^^UserId***";
+            List<Anad> list = null;
+            string text = "";
+            text = " Anad***Id^^^UserId^^^ObjectId^^^Date^^^ TypeId^^^ ProvinceId^^^ Seen^^^UserId***";
             string currentDate = this.getServerDateMilis();
-
             if (isRefresh > 0)
             {
-                if ((fromDate != null) && (fromDate != ""))
+                if (fromDate != null && fromDate != "")
                 {
-                    source = (from x in this.context.Anads
-                              where (x.ModifyDate != null) && (fromDate.CompareTo(x.ModifyDate) < 0) && x.UserId == userId
-                              orderby x.ModifyDate descending
-                              select x).Take<Anad>(this.recordCount).ToList<Anad>();
+                    list = (from x in this.context.Anads
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0 && x.UserId == (int?)userId
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<Anad>();
                 }
             }
-            else if ((endDate != null) && (endDate != ""))
+            else if (endDate != null && endDate != "")
             {
-                source = (from x in this.context.Anads
-                          where (x.ModifyDate != null) && (endDate.CompareTo(x.ModifyDate) >= 0) && x.UserId == userId
-                          orderby x.ModifyDate descending
-                          select x).Take<Anad>(this.recordCount).ToList<Anad>();
+                list = (from x in this.context.Anads
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0 && x.UserId == (int?)userId
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<Anad>();
             }
             else
             {
-                source = (from x in this.context.Anads
-                          where (x.ModifyDate != null) && (currentDate.CompareTo(x.ModifyDate) >= 0) && x.UserId == userId
-                          orderby x.ModifyDate descending
-                          select x).Take<Anad>(this.recordCount).ToList<Anad>();
+                list = (from x in this.context.Anads
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0 && x.UserId == (int?)userId
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<Anad>();
             }
-            if ((source == null) || (source.Count<Anad>() <= 0))
+            string result;
+            if (list == null || list.Count<Anad>() <= 0)
             {
-                return "";
+                result = "";
             }
-            str = (str + source.FirstOrDefault<Anad>().ModifyDate + "***") + source.LastOrDefault<Anad>().ModifyDate + "***";
-            foreach (Anad anad in source)
+            else
             {
-                object obj2 = str;
-                str = string.Concat(new object[] { obj2, anad.Id, "^^^", anad.ObjectId, "^^^", anad.Date, "^^^", anad.TypeId, "^^^", anad.ProvinceId, "^^^0^^^",anad.UserId ,"***" });
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<Anad>().ModifyDate,
+					"***",
+					list.LastOrDefault<Anad>().ModifyDate,
+					"***"
+				});
+                foreach (Anad current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+                        current.UserId,
+                        "^^^",
+						current.ObjectId,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.TypeId,
+						"^^^",
+						current.ProvinceId,
+						"^^^0^^^",
+						current.UserId,
+						"***"
+					});
+                }
+                result = text;
             }
-            return str;
+            return result;
         }
 
         [WebMethod]
         public long getAllVisit(int objectId, int typeId)
         {
-            long count = 0;
-            count = (from x in this.context.Visits
-                      where x.ObjectId == objectId && x.TypeId == typeId
-                      select x.UserId).LongCount();
-            return count;
+            return (from x in this.context.Visits
+                    where x.ObjectId == (int?)objectId && x.TypeId == (int?)typeId
+                    select x.UserId).LongCount<int?>();
         }
 
         [WebMethod]
         public string getObjectByObjectId(int objectId, string fromDate, string toDate, int provinceId = 0, int cityId = 0, int agencyService = 0)
         {
-            String str = " Object***Id^^^Name^^^Phone^^^Email^^^Fax^^^Description^^^Cellphone^^^Address^^^Pdf1^^^Pdf2^^^Pdf3^^^Pdf4^^^ObjectTypeId^^^ObjectBrandTypeId^^^Facebook^^^Instagram^^^LinkedIn^^^Google^^^Site^^^Twitter^^^ParentId^^^rate^^^serverDate^^^MainObjectId^^^ObjectId^^^UserId^^^Date^^^IsActive^^^AgencyService***";
-            List<Object> source = null;
-            source = (from obj in this.context.Objects 
-                      join oic in this.context.ObjectInCities on obj.Id equals oic.ObjectId
-                      where (obj.ModifyDate != null) && (fromDate.CompareTo(obj.ModifyDate) < 0)
-                      && (toDate.CompareTo(obj.ModifyDate) >= 0)
-                      && oic.CityId == cityId && obj.AgencyService == agencyService
-                      orderby obj.ModifyDate descending
-                      select obj).ToList<Object>();
-         
-            str = (str + source.FirstOrDefault<Service.Object>().ModifyDate + "***") + source.LastOrDefault<Service.Object>().ModifyDate + "***";
-            foreach (Service.Object obj2 in source)
+            string text = " Object***Id^^^Name^^^Phone^^^Email^^^Fax^^^Description^^^Cellphone^^^Address^^^Pdf1^^^Pdf2^^^Pdf3^^^Pdf4^^^ObjectTypeId^^^ObjectBrandTypeId^^^Facebook^^^Instagram^^^LinkedIn^^^Google^^^Site^^^Twitter^^^ParentId^^^rate^^^serverDate^^^MainObjectId^^^ObjectId^^^UserId^^^Date^^^IsActive^^^AgencyService***";
+            object obj;
+            List<Object> list = (from obj2 in this.context.Objects
+                                 join oic in this.context.ObjectInCities on (int?)obj2.Id equals oic.ObjectId
+                                 where obj2.ModifyDate != null && fromDate.CompareTo(obj2.ModifyDate) < 0 && toDate.CompareTo(obj2.ModifyDate) >= 0 && oic.CityId == (int?)cityId && obj2.AgencyService == (int?)agencyService
+                                 orderby obj2.ModifyDate descending
+                                 select obj2).ToList<Object>();
+            string result;
+            if (list.Count > 0)
             {
-                object obj3 = str;
-                str = string.Concat(new object[] { 
-                    obj3, obj2.Id, "^^^", obj2.Name, "^^^", obj2.Phone, "^^^", obj2.Email, "^^^", obj2.Fax, "^^^", obj2.Description, "^^^", obj2.Cellphone, "^^^", obj2.Address, 
-                    "^^^", obj2.Pdf1, "^^^", obj2.Pdf2, "^^^", obj2.Pdf3, "^^^", obj2.Pdf4, "^^^", obj2.ObjectTypeId, "^^^", obj2.ObjectBrandTypeId, "^^^", obj2.Facebook, "^^^", obj2.Instagram, 
-                    "^^^", obj2.LinkedIn, "^^^", obj2.Google, "^^^", obj2.Site, "^^^", obj2.Twitter, "^^^", obj2.ParentId, "^^^", obj2.rate, "^^^", obj2.Date, "^^^", obj2.MainObjectId, 
-                    "^^^", obj2.ObjectId, "^^^", obj2.UserId, "^^^", obj2.Date, "^^^", obj2.IsActive, "^^^", obj2.AgencyService, "***"
-                 });
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<Object>().ModifyDate,
+					"***",
+					list.LastOrDefault<Object>().ModifyDate,
+					"***"
+				});
+                foreach (Object current in list)
+                {
+                    obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.Name,
+						"^^^",
+						current.Phone,
+						"^^^",
+						current.Email,
+						"^^^",
+						current.Fax,
+						"^^^",
+						current.Description,
+						"^^^",
+						current.Cellphone,
+						"^^^",
+						current.Address,
+						"^^^",
+						current.Pdf1,
+						"^^^",
+						current.Pdf2,
+						"^^^",
+						current.Pdf3,
+						"^^^",
+						current.Pdf4,
+						"^^^",
+						current.ObjectTypeId,
+						"^^^",
+						current.ObjectBrandTypeId,
+						"^^^",
+						current.Facebook,
+						"^^^",
+						current.Instagram,
+						"^^^",
+						current.LinkedIn,
+						"^^^",
+						current.Google,
+						"^^^",
+						current.Site,
+						"^^^",
+						current.Twitter,
+						"^^^",
+						current.ParentId,
+						"^^^",
+						current.rate,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.MainObjectId,
+						"^^^",
+						current.ObjectId,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.IsActive,
+						"^^^",
+						current.AgencyService,
+						"***"
+					});
+                }
+                result = text;
             }
-            return str;
+            else
+            {
+                result = "";
+            }
+            return result;
         }
-                    
+
+        [WebMethod]
+        public string getPostCountByObjectId(int objectId)
+        {
+            return (from x in this.context.Posts
+                    where x.ObjectId == (int?)objectId
+                    select x).Count<Post>().ToString();
+        }
+
+        [WebMethod]
+        public string getHappySadByObjectId(int objectId,int type)
+        {
+            return (from x in this.context.LikeInObjects
+                    where x.ObjectId == (int?)objectId && x.LikeType == type
+                    select x).Count<LikeInObject>().ToString();
+        }
+
+        [WebMethod]
+        public string getUserByObjectId(int objectId,int type)
+        {
+            List<User> list = null;
+            string text = "";
+            text = "Users***Id^^^Name^^^Email^^^Password^^^Phonenumber^^^mobailenumber^^^Faxnumber^^^Address^^^Date^^^ShowInfoItem^^^BirthDay^^^CityId***";
+            string currentDate = this.getServerDateMilis();
+            list = (from x in this.context.Users
+                    join lio in this.context.LikeInObjects on x.Id equals lio.UserId
+                    where lio.ObjectId == objectId && lio.LikeType == type
+                    orderby x.ModifyDate descending
+                    select x).ToList<User>();
+            string result;
+            if (list == null || list.Count<User>() <= 0)
+            {
+                result = "";
+            }
+            else
+            {
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<User>().ModifyDate,
+					"***",
+					list.LastOrDefault<User>().ModifyDate,
+					"***"
+				});
+                foreach (User current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.Name,
+						"^^^",
+						current.Email,
+						"^^^",
+						current.Password,
+						"^^^",
+						current.Phonenumber,
+						"^^^",
+						current.Mobailenumber,
+						"^^^",
+						current.Faxnumber,
+						"^^^",
+						current.Address,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.ShowInfoItem,
+						"^^^",
+						current.BirthDay,
+						"^^^",
+						current.CityId,
+						"***"
+					});
+                }
+                result = text;
+            }
+            return result;
+        }
+
+        [WebMethod]
+        public string getLikeInObjectByObjectId(int objectId, int type)
+        {
+            List<LikeInObject> list = null;
+            string text = "";
+            text = " LikeInObject***Id^^^UserId^^^PaperId^^^Date^^^LikeType^^^Seen^^^unFollow^^^unFollowDate^^^IsLike***";
+            string currentDate = this.getServerDateMilis();
+
+            list = (from x in this.context.Users
+                    join lio in this.context.LikeInObjects on x.Id equals lio.UserId
+                    where lio.ObjectId == objectId && lio.LikeType == type
+                    orderby x.ModifyDate descending
+                    select lio).ToList<LikeInObject>();
+            
+            string result;
+            if (list == null || list.Count<LikeInObject>() <= 0)
+            {
+                result = "";
+            }
+            else
+            {
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<LikeInObject>().ModifyDate,
+					"***",
+					list.LastOrDefault<LikeInObject>().ModifyDate,
+					"***"
+				});
+                foreach (LikeInObject current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.ObjectId,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.LikeType,
+						"^^^0",
+                        "^^^",
+                        current.unFollow,
+                        "^^^",
+                        current.unFollowDate,
+                        "^^^",
+                        current.IsLike,
+                        "***"
+					});
+                }
+                result = text;
+            }
+            return result;
+        }
+
+
+        [WebMethod]
+        public string getFollowerCountByObjectId(int objectId)
+        {
+            return (from x in this.context.LikeInObjects
+                    where x.ObjectId == (int?)objectId && x.LikeType == (int?)0
+                    select x).Count<LikeInObject>().ToString();
+        }
+
+        [WebMethod]
+        public string getLikeInPostCount(int id)
+        {
+            return (from x in this.context.LikeInPosts
+                    where x.PostId == (int?)id 
+                    select x).Count<LikeInPost>().ToString();
+        }
+
+        [WebMethod]
+        public string getLikeInPaperCount(int id)
+        {
+            return (from x in this.context.LikeInPapers
+                    where x.PaperId == (int?)id
+                    select x).Count<LikeInPaper>().ToString();
+        }
+
+        [WebMethod]
+        public string getLikeInFroumCount(int id)
+        {
+            return (from x in this.context.LikeInFroums
+                    where x.FroumId == (int?)id
+                    select x).Count<LikeInFroum>().ToString();
+        }
+
+        [WebMethod]
+        public string getCommentInPostCount(int id)
+        {
+            return (from x in this.context.CommentInPosts
+                    where x.PostId == (int?)id
+                    select x).Count<CommentInPost>().ToString();
+        }
+
+        [WebMethod]
+        public string getCommentInPostById(int id)
+        {
+            List<CommentInPost> list = (from x in this.context.CommentInPosts
+                    where x.PostId == (int?)id
+                    select x).ToList();
+
+            string text = " CommentInPost***Id^^^Description^^^PostId^^^UserId^^^Date^^^ CommentId***";
+            string currentDate = this.getServerDateMilis();
+            string result;
+            if (list == null || list.Count<CommentInPost>() <= 0)
+            {
+                result = "";
+            }
+            else
+            {
+                text = string.Concat(new string[]
+				{
+					text,
+					"-1",
+					"***",
+					"-1",
+					"***"
+				});
+                foreach (CommentInPost current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.Description,
+						"^^^",
+						current.PostId,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.ModifyDate,
+						"^^^",
+						current.CommentId,
+						"***"
+					});
+                }
+                result = text;
+            }
+            return result;
+        }
+
+        [WebMethod]
+        public string getCommentInPaperCount(int id)
+        {
+            return (from x in this.context.CommentInPapers
+                    where x.PaperId == (int?)id
+                    select x).Count<CommentInPaper>().ToString();
+        }
+
+        [WebMethod]
+        public string getCommentInPaperById(int id)
+        {
+            List<CommentInPaper> list = (from x in this.context.CommentInPapers
+                    where x.PaperId == (int?)id
+                    select x).ToList();
+
+            string text = "";
+            text = " CmtInPaper***Id^^^Desk^^^PaperId^^^UserId^^^Date^^^ CommentId^^^ Seen***";
+            string currentDate = this.getServerDateMilis();
+           
+            string result;
+            if (list == null || list.Count<CommentInPaper>() <= 0)
+            {
+                result = "";
+            }
+            else
+            {
+                text = string.Concat(new string[]
+				{
+					text,
+					"-1",
+					"***",
+					"-1",
+					"***"
+				});
+                foreach (CommentInPaper current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.Desk,
+						"^^^",
+						current.PaperId,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.CommentId,
+						"^^^0***"
+					});
+                }
+                result = text;
+            }
+            return result;
+        }
+
+
+        [WebMethod]
+        public string getCommentInFroumCount(int id)
+        {
+            return (from x in this.context.CommentInFroums
+                    where x.FroumId == (int?)id
+                    select x).Count<CommentInFroum>().ToString();
+        }
+
+        [WebMethod]
+        public string getCommentInFroumById(int id)
+        {
+            List<CommentInFroum> list = null;
+            list = (from x in this.context.CommentInFroums
+                    where x.FroumId == (int?)id
+                    select x).ToList();
+
+            string text = "";
+            text = " CommentInFroum***Id^^^Desk^^^FroumId^^^UserId^^^Date^^^CommentId^^^NumofLike^^^NumofDisLike^^^Seen***";
+            string currentDate = this.getServerDateMilis();
+            
+            string result;
+            if (list == null || list.Count<CommentInFroum>() <= 0)
+            {
+                result = "";
+            }
+            else
+            {
+                text = string.Concat(new string[]
+				{
+					text,
+					"-1",
+					"***",
+					"-1",
+					"***"
+				});
+                foreach (CommentInFroum current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.ID,
+						"^^^",
+						current.Desk,
+						"^^^",
+						current.FroumId,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.CommentId,
+						"^^^",
+						current.NumofLike,
+						"^^^",
+						current.NumofDisLike,
+						"^^^0***"
+					});
+                }
+                result = text;
+            }
+            return result;
+        }
+
+        [WebMethod]
+        public string isObjectHasSubObject(int objectId, int agencyService)
+        {
+            return (from x in this.context.Objects
+                    where x.ObjectId == (int?)objectId && x.AgencyService == agencyService
+                    select x).Count<Object>().ToString();
+        }
+
+
+        [WebMethod]
+        public string getSubObjectsInCity(int objectId, int agencyService,int cityId)
+        {
+            return (from x in this.context.Objects
+                    join oInCity in context.ObjectInCities on x.Id equals oInCity.ObjectId
+                    where x.ObjectId == (int?)objectId && x.AgencyService == agencyService && oInCity.CityId == cityId
+                    select x).Count<Object>().ToString();
+        }
+
+        [WebMethod]
+        public string getSubObjectsInProvince(int objectId, int agencyService, int provinceId)
+        {
+            return (from x in this.context.Objects
+                    join oInProvince in context.ObjectInProvinces on x.Id equals oInProvince.ObjectId
+                    where x.ObjectId == (int?)objectId && x.AgencyService == agencyService && oInProvince.ProvinceId == provinceId
+                    select x).Count<Object>().ToString();
+        }
     }
 }
