@@ -201,13 +201,6 @@
       <Column Name="ParentId" Type="System.Int32" DbType="Int" CanBeNull="true" />
     </Type>
   </Table>
-  <Table Name="dbo.ListItem" Member="ListItems">
-    <Type Name="ListItem">
-      <Column Name="Id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsDbGenerated="true" CanBeNull="false" />
-      <Column Name="Name" Type="System.String" DbType="VarChar(MAX)" CanBeNull="true" />
-      <Column Name="ListId" Type="System.Int32" DbType="Int" CanBeNull="true" />
-    </Type>
-  </Table>
   <Table Name="dbo.[main.Object]" Member="main_Objects">
     <Type Name="main_Object">
       <Column Name="userId" Type="System.String" DbType="VarChar(50)" CanBeNull="true" />
@@ -599,6 +592,15 @@
       <Column Name="IsLike" Type="System.Int32" DbType="Int" CanBeNull="true" />
       <Column Name="unFollow" Type="System.Int32" DbType="Int" CanBeNull="true" />
       <Column Name="unFollowDate" Type="System.String" DbType="VarChar(MAX)" CanBeNull="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.ListItem" Member="ListItems">
+    <Type Name="ListItem">
+      <Column Name="Id" Type="System.Int32" DbType="Int NOT NULL IDENTITY" IsDbGenerated="true" CanBeNull="false" />
+      <Column Name="Name" Type="System.String" DbType="VarChar(MAX)" CanBeNull="true" />
+      <Column Name="ListId" Type="System.Int32" DbType="Int" CanBeNull="true" />
+      <Column Name="Date" Type="System.String" DbType="VarChar(MAX)" CanBeNull="true" />
+      <Column Name="ModifyDate" Type="System.String" DbType="VarChar(MAX)" CanBeNull="true" />
     </Type>
   </Table>
 </Database>

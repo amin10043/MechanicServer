@@ -13,6 +13,8 @@ namespace Service
 
         private int recordCount = 5;
 
+        private int numberOfTicketForOneUser = 30;
+
         private User user = new User();
 
         [WebMethod]
@@ -87,24 +89,22 @@ namespace Service
             if (tableName.Contains("Comment"))
             {
                 num = this.context.ExecuteCommand(string.Concat(new string[]
-    			{
-			        "Delete From LikeInComment",
-			        " WHERE ",
-			        "CommentId =",
-			        Id
-                }), new object[0]);
+				{
+					"Delete From LikeInComment",
+					" WHERE ",
+					"CommentId =",
+					Id
+				}), new object[0]);
                 num = this.context.ExecuteCommand(string.Concat(new string[]
-			    {
-				    "Delete From ",
-				    tableName,
-				    " WHERE ",
-				    "CommentId =",
-				    Id
-                }), new object[0]);
-
+				{
+					"Delete From ",
+					tableName,
+					" WHERE ",
+					"CommentId =",
+					Id
+				}), new object[0]);
             }
-
-            return num;
+            return num.ToString();
         }
 
         [WebMethod]
@@ -161,8 +161,8 @@ namespace Service
 						obj,
 						current.Id,
 						"^^^",
-                        current.UserId,
-                        "^^^",
+						current.UserId,
+						"^^^",
 						current.ObjectId,
 						"^^^",
 						current.Date,
@@ -206,6 +206,77 @@ namespace Service
             {
                 list = (from x in this.context.CommentInPapers
                         where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<CommentInPaper>();
+            }
+            string result;
+            if (list == null || list.Count<CommentInPaper>() <= 0)
+            {
+                result = "";
+            }
+            else
+            {
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<CommentInPaper>().ModifyDate,
+					"***",
+					list.LastOrDefault<CommentInPaper>().ModifyDate,
+					"***"
+				});
+                foreach (CommentInPaper current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.Desk,
+						"^^^",
+						current.PaperId,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.CommentId,
+						"^^^0***"
+					});
+                }
+                result = text;
+            }
+            return result;
+        }
+
+        [WebMethod]
+        public string getAllCmtInPaperById(string fromDate, string endDate, int isRefresh, int id)
+        {
+            List<CommentInPaper> list = null;
+            string text = "";
+            text = " CmtInPaper***Id^^^Desk^^^PaperId^^^UserId^^^Date^^^ CommentId^^^ Seen***";
+            string currentDate = this.getServerDateMilis();
+            if (isRefresh > 0)
+            {
+                if (fromDate != null && fromDate != "")
+                {
+                    list = (from x in this.context.CommentInPapers
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0 && x.PaperId == (int?)id
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<CommentInPaper>();
+                }
+            }
+            else if (endDate != null && endDate != "")
+            {
+                list = (from x in this.context.CommentInPapers
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0 && x.PaperId == (int?)id
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<CommentInPaper>();
+            }
+            else
+            {
+                list = (from x in this.context.CommentInPapers
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0 && x.PaperId == (int?)id
                         orderby x.ModifyDate descending
                         select x).Take(this.recordCount).ToList<CommentInPaper>();
             }
@@ -325,6 +396,81 @@ namespace Service
         }
 
         [WebMethod]
+        public string getAllCommentInFroumById(string fromDate, string endDate, int isRefresh, int id)
+        {
+            List<CommentInFroum> list = null;
+            string text = "";
+            text = " CommentInFroum***Id^^^Desk^^^FroumId^^^UserId^^^Date^^^CommentId^^^NumofLike^^^NumofDisLike^^^Seen***";
+            string currentDate = this.getServerDateMilis();
+            if (isRefresh > 0)
+            {
+                if (fromDate != null && fromDate != "")
+                {
+                    list = (from x in this.context.CommentInFroums
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0 && x.FroumId == (int?)id
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<CommentInFroum>();
+                }
+            }
+            else if (endDate != null && endDate != "")
+            {
+                list = (from x in this.context.CommentInFroums
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0 && x.FroumId == (int?)id
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<CommentInFroum>();
+            }
+            else
+            {
+                list = (from x in this.context.CommentInFroums
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0 && x.FroumId == (int?)id
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<CommentInFroum>();
+            }
+            string result;
+            if (list == null || list.Count<CommentInFroum>() <= 0)
+            {
+                result = "";
+            }
+            else
+            {
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<CommentInFroum>().ModifyDate,
+					"***",
+					list.LastOrDefault<CommentInFroum>().ModifyDate,
+					"***"
+				});
+                foreach (CommentInFroum current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.ID,
+						"^^^",
+						current.Desk,
+						"^^^",
+						current.FroumId,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.CommentId,
+						"^^^",
+						current.NumofLike,
+						"^^^",
+						current.NumofDisLike,
+						"^^^0***"
+					});
+                }
+                result = text;
+            }
+            return result;
+        }
+
+        [WebMethod]
         public string getAllCommentInObject(string fromDate, string endDate, int isRefresh)
         {
             List<CommentInObject> list = null;
@@ -352,6 +498,77 @@ namespace Service
             {
                 list = (from x in this.context.CommentInObjects
                         where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<CommentInObject>();
+            }
+            string result;
+            if (list == null || list.Count<CommentInObject>() <= 0)
+            {
+                result = "";
+            }
+            else
+            {
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<CommentInObject>().ModifyDate,
+					"***",
+					list.LastOrDefault<CommentInObject>().ModifyDate,
+					"***"
+				});
+                foreach (CommentInObject current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.Desk,
+						"^^^",
+						current.ObjectId,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.CommentId,
+						"^^^0***"
+					});
+                }
+                result = text;
+            }
+            return result;
+        }
+
+        [WebMethod]
+        public string getAllCommentInObjectById(string fromDate, string endDate, int isRefresh, int id)
+        {
+            List<CommentInObject> list = null;
+            string text = "";
+            text = " CommentInObject***Id^^^Desk^^^ObjectId^^^UserId^^^Date^^^ CommentId ^^^ Seen ***";
+            string currentDate = this.getServerDateMilis();
+            if (isRefresh > 0)
+            {
+                if (fromDate != null && fromDate != "")
+                {
+                    list = (from x in this.context.CommentInObjects
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0 && x.ObjectId == (int?)id
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<CommentInObject>();
+                }
+            }
+            else if (endDate != null && endDate != "")
+            {
+                list = (from x in this.context.CommentInObjects
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0 && x.ObjectId == (int?)id
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<CommentInObject>();
+            }
+            else
+            {
+                list = (from x in this.context.CommentInObjects
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0 && x.ObjectId == (int?)id
                         orderby x.ModifyDate descending
                         select x).Take(this.recordCount).ToList<CommentInObject>();
             }
@@ -467,6 +684,77 @@ namespace Service
         }
 
         [WebMethod]
+        public string getAllCommentInPostById(string fromDate, string endDate, int isRefresh, int id)
+        {
+            List<CommentInPost> list = null;
+            string text = "";
+            text = " CommentInPost***Id^^^Description^^^PostId^^^UserId^^^Date^^^ CommentId***";
+            string currentDate = this.getServerDateMilis();
+            if (isRefresh > 0)
+            {
+                if (fromDate != null && fromDate != "")
+                {
+                    list = (from x in this.context.CommentInPosts
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0 && x.PostId == (int?)id
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<CommentInPost>();
+                }
+            }
+            else if (endDate != null && endDate != "")
+            {
+                list = (from x in this.context.CommentInPosts
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0 && x.PostId == (int?)id
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<CommentInPost>();
+            }
+            else
+            {
+                list = (from x in this.context.CommentInPosts
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0 && x.PostId == (int?)id
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<CommentInPost>();
+            }
+            string result;
+            if (list == null || list.Count<CommentInPost>() <= 0)
+            {
+                result = "";
+            }
+            else
+            {
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<CommentInPost>().ModifyDate,
+					"***",
+					list.LastOrDefault<CommentInPost>().ModifyDate,
+					"***"
+				});
+                foreach (CommentInPost current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.Description,
+						"^^^",
+						current.PostId,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.ModifyDate,
+						"^^^",
+						current.CommentId,
+						"***"
+					});
+                }
+                result = text;
+            }
+            return result;
+        }
+
+        [WebMethod]
         public string getAllLikeInPost(string fromDate, string endDate, int isRefresh)
         {
             List<LikeInPost> list = null;
@@ -536,6 +824,75 @@ namespace Service
         }
 
         [WebMethod]
+        public string getAllLikeInPostById(string fromDate, string endDate, int isRefresh, int id)
+        {
+            List<LikeInPost> list = null;
+            string text = "";
+            text = " LikeInPost***Id^^^UserId^^^PostId^^^Date^^^CommentId***";
+            string currentDate = this.getServerDateMilis();
+            if (isRefresh > 0)
+            {
+                if (fromDate != null && fromDate != "")
+                {
+                    list = (from x in this.context.LikeInPosts
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0 && x.PostId == (int?)id
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<LikeInPost>();
+                }
+            }
+            else if (endDate != null && endDate != "")
+            {
+                list = (from x in this.context.LikeInPosts
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0 && x.PostId == (int?)id
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<LikeInPost>();
+            }
+            else
+            {
+                list = (from x in this.context.LikeInPosts
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0 && x.PostId == (int?)id
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<LikeInPost>();
+            }
+            string result;
+            if (list == null || list.Count<LikeInPost>() <= 0)
+            {
+                result = "";
+            }
+            else
+            {
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<LikeInPost>().ModifyDate,
+					"***",
+					list.LastOrDefault<LikeInPost>().ModifyDate,
+					"***"
+				});
+                foreach (LikeInPost current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.PostId,
+						"^^^",
+						current.ModifyDate,
+						"^^^",
+						current.CommentId,
+						"***"
+					});
+                }
+                result = text;
+            }
+            return result;
+        }
+
+        [WebMethod]
         public string getAllLikeInCommentPost(string fromDate, string endDate, int isRefresh)
         {
             List<LikeInCommentPost> list = null;
@@ -563,6 +920,75 @@ namespace Service
             {
                 list = (from x in this.context.LikeInCommentPosts
                         where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<LikeInCommentPost>();
+            }
+            string result;
+            if (list == null || list.Count<LikeInCommentPost>() <= 0)
+            {
+                result = "";
+            }
+            else
+            {
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<LikeInCommentPost>().ModifyDate,
+					"***",
+					list.LastOrDefault<LikeInCommentPost>().ModifyDate,
+					"***"
+				});
+                foreach (LikeInCommentPost current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.CommentId,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.IsLike,
+						"^^^",
+						current.ModifyDate,
+						"***"
+					});
+                }
+                result = text;
+            }
+            return result;
+        }
+
+        [WebMethod]
+        public string getAllLikeInCommentPostById(string fromDate, string endDate, int isRefresh, int id)
+        {
+            List<LikeInCommentPost> list = null;
+            string text = "";
+            text = " LikeInCommentPost***Id^^^CommentId^^^UserId^^^IsLike^^^Date***";
+            string currentDate = this.getServerDateMilis();
+            if (isRefresh > 0)
+            {
+                if (fromDate != null && fromDate != "")
+                {
+                    list = (from x in this.context.LikeInCommentPosts
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0 && x.CommentId == (int?)id
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<LikeInCommentPost>();
+                }
+            }
+            else if (endDate != null && endDate != "")
+            {
+                list = (from x in this.context.LikeInCommentPosts
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0 && x.CommentId == (int?)id
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<LikeInCommentPost>();
+            }
+            else
+            {
+                list = (from x in this.context.LikeInCommentPosts
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0 && x.CommentId == (int?)id
                         orderby x.ModifyDate descending
                         select x).Take(this.recordCount).ToList<LikeInCommentPost>();
             }
@@ -778,6 +1204,77 @@ namespace Service
         }
 
         [WebMethod]
+        public string getAllLikeInCommentById(string fromDate, string endDate, int isRefresh, int id)
+        {
+            List<LikeInComment> list = null;
+            string text = "";
+            text = " LikeInComment***Id^^^CommentId^^^UserId^^^IsLike^^^ModifyDate^^^Date***";
+            string currentDate = this.getServerDateMilis();
+            if (isRefresh > 0)
+            {
+                if (fromDate != null && fromDate != "")
+                {
+                    list = (from x in this.context.LikeInComments
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0 && x.CommentId == (int?)id
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<LikeInComment>();
+                }
+            }
+            else if (endDate != null && endDate != "")
+            {
+                list = (from x in this.context.LikeInComments
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0 && x.CommentId == (int?)id
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<LikeInComment>();
+            }
+            else
+            {
+                list = (from x in this.context.LikeInComments
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0 && x.CommentId == (int?)id
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<LikeInComment>();
+            }
+            string result;
+            if (list == null || list.Count<LikeInComment>() <= 0)
+            {
+                result = "";
+            }
+            else
+            {
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<LikeInComment>().ModifyDate,
+					"***",
+					list.LastOrDefault<LikeInComment>().ModifyDate,
+					"***"
+				});
+                foreach (LikeInComment current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.ID,
+						"^^^",
+						current.CommentId,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.IsLike,
+						"^^^",
+						current.ModifyDate,
+						"^^^",
+						current.Date,
+						"***"
+					});
+                }
+                result = text;
+            }
+            return result;
+        }
+
+        [WebMethod]
         public string getAllLikeInCommentObject(string fromDate, string endDate, int isRefresh)
         {
             List<LikeInCommentObject> list = null;
@@ -805,6 +1302,75 @@ namespace Service
             {
                 list = (from x in this.context.LikeInCommentObjects
                         where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<LikeInCommentObject>();
+            }
+            string result;
+            if (list == null || list.Count<LikeInCommentObject>() <= 0)
+            {
+                result = "";
+            }
+            else
+            {
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<LikeInCommentObject>().ModifyDate,
+					"***",
+					list.LastOrDefault<LikeInCommentObject>().ModifyDate,
+					"***"
+				});
+                foreach (LikeInCommentObject current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.CommentId,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.IsLike,
+						"^^^",
+						current.ModifyDate,
+						"***"
+					});
+                }
+                result = text;
+            }
+            return result;
+        }
+
+        [WebMethod]
+        public string getAllLikeInCommentObjectById(string fromDate, string endDate, int isRefresh, int id)
+        {
+            List<LikeInCommentObject> list = null;
+            string text = "";
+            text = " LikeInCommentObject***Id^^^CommentId^^^UserId^^^IsLike^^^ModifyDate***";
+            string currentDate = this.getServerDateMilis();
+            if (isRefresh > 0)
+            {
+                if (fromDate != null && fromDate != "")
+                {
+                    list = (from x in this.context.LikeInCommentObjects
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0 && x.CommentId == (int?)id
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<LikeInCommentObject>();
+                }
+            }
+            else if (endDate != null && endDate != "")
+            {
+                list = (from x in this.context.LikeInCommentObjects
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0 && x.CommentId == (int?)id
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<LikeInCommentObject>();
+            }
+            else
+            {
+                list = (from x in this.context.LikeInCommentObjects
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0 && x.CommentId == (int?)id
                         orderby x.ModifyDate descending
                         select x).Take(this.recordCount).ToList<LikeInCommentObject>();
             }
@@ -916,6 +1482,75 @@ namespace Service
         }
 
         [WebMethod]
+        public string getAllLikeInFroumById(string fromDate, string endDate, int isRefresh, int id)
+        {
+            List<LikeInFroum> list = null;
+            string text = "";
+            text = "LikeInFroum***Id^^^UserId^^^FroumId^^^Date^^^CommentId^^^Seen***";
+            string currentDate = this.getServerDateMilis();
+            if (isRefresh > 0)
+            {
+                if (fromDate != null && fromDate != "")
+                {
+                    list = (from x in this.context.LikeInFroums
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0 && x.FroumId == (int?)id
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<LikeInFroum>();
+                }
+            }
+            else if (endDate != null && endDate != "")
+            {
+                list = (from x in this.context.LikeInFroums
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0 && x.FroumId == (int?)id
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<LikeInFroum>();
+            }
+            else
+            {
+                list = (from x in this.context.LikeInFroums
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0 && x.FroumId == (int?)id
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<LikeInFroum>();
+            }
+            string result;
+            if (list == null || list.Count<LikeInFroum>() <= 0)
+            {
+                result = "";
+            }
+            else
+            {
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<LikeInFroum>().ModifyDate,
+					"***",
+					list.LastOrDefault<LikeInFroum>().ModifyDate,
+					"***"
+				});
+                foreach (LikeInFroum current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.FroumId,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.CommentId,
+						"^^^0***"
+					});
+                }
+                result = text;
+            }
+            return result;
+        }
+
+        [WebMethod]
         public string getAllLikeInObject(string fromDate, string endDate, int isRefresh)
         {
             List<LikeInObject> list = null;
@@ -977,12 +1612,87 @@ namespace Service
 						"^^^",
 						current.LikeType,
 						"^^^0",
-                        current.IsLike,
-                        "^^^",
-                        current.unFollow,
-                        "^^^",
-                        current.unFollowDate,
-                        "***"
+						current.IsLike,
+						"^^^",
+						current.unFollow,
+						"^^^",
+						current.unFollowDate,
+						"***"
+					});
+                }
+                result = text;
+            }
+            return result;
+        }
+
+        [WebMethod]
+        public string getAllLikeInObjectById(string fromDate, string endDate, int isRefresh, int id)
+        {
+            List<LikeInObject> list = null;
+            string text = "";
+            text = " LikeInObject***Id^^^UserId^^^PaperId^^^Date^^^LikeType^^^Seen^^^IsLike^^^unFollow^^^unFollowDate***";
+            string currentDate = this.getServerDateMilis();
+            if (isRefresh > 0)
+            {
+                if (fromDate != null && fromDate != "")
+                {
+                    list = (from x in this.context.LikeInObjects
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0 && x.ObjectId == (int?)id && x.unFollow == null
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<LikeInObject>();
+                }
+            }
+            else if (endDate != null && endDate != "")
+            {
+                list = (from x in this.context.LikeInObjects
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0 && x.ObjectId == (int?)id && x.unFollow == null
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<LikeInObject>();
+            }
+            else
+            {
+                list = (from x in this.context.LikeInObjects
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0 && x.ObjectId == (int?)id && x.unFollow == null
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<LikeInObject>();
+            }
+            string result;
+            if (list == null || list.Count<LikeInObject>() <= 0)
+            {
+                result = "";
+            }
+            else
+            {
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<LikeInObject>().ModifyDate,
+					"***",
+					list.LastOrDefault<LikeInObject>().ModifyDate,
+					"***"
+				});
+                foreach (LikeInObject current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.ObjectId,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.LikeType,
+						"^^^0",
+						current.IsLike,
+						"^^^",
+						current.unFollow,
+						"^^^",
+						current.unFollowDate,
+						"***"
 					});
                 }
                 result = text;
@@ -1018,6 +1728,75 @@ namespace Service
             {
                 list = (from x in this.context.LikeInPapers
                         where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<LikeInPaper>();
+            }
+            string result;
+            if (list == null || list.Count<LikeInPaper>() <= 0)
+            {
+                result = "";
+            }
+            else
+            {
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<LikeInPaper>().ModifyDate,
+					"***",
+					list.LastOrDefault<LikeInPaper>().ModifyDate,
+					"***"
+				});
+                foreach (LikeInPaper current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.PaperId,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.CommentId,
+						"^^^0***"
+					});
+                }
+                result = text;
+            }
+            return result;
+        }
+
+        [WebMethod]
+        public string getAllLikeInPaperById(string fromDate, string endDate, int isRefresh, int id)
+        {
+            List<LikeInPaper> list = null;
+            string text = "";
+            text = "LikeInPaper***Id^^^UserId^^^PaperId^^^Date^^^CommentId^^^Seen***";
+            string currentDate = this.getServerDateMilis();
+            if (isRefresh > 0)
+            {
+                if (fromDate != null && fromDate != "")
+                {
+                    list = (from x in this.context.LikeInPapers
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0 && x.PaperId == (int?)id
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<LikeInPaper>();
+                }
+            }
+            else if (endDate != null && endDate != "")
+            {
+                list = (from x in this.context.LikeInPapers
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0 && x.PaperId == (int?)id
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<LikeInPaper>();
+            }
+            else
+            {
+                list = (from x in this.context.LikeInPapers
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0 && x.PaperId == (int?)id
                         orderby x.ModifyDate descending
                         select x).Take(this.recordCount).ToList<LikeInPaper>();
             }
@@ -1604,14 +2383,16 @@ namespace Service
             {
                 text = text + text2 + "&&&";
             }
-
             text2 = this.getAllSubAdmin("", "", isRefresh);
             if (text2 != "")
             {
                 text = text + text2 + "&&&";
             }
-
-
+            text2 = this.getListItemByListId("", "", isRefresh);
+            if (text2 != "")
+            {
+                text = text + text2 + "&&&";
+            }
             return text;
         }
 
@@ -1847,16 +2628,13 @@ namespace Service
         [WebMethod]
         public string getAllSubAdminByObjectId(int objectId)
         {
-            List<SubAdmin> list = null;
             string text = "";
             text = "SubAdmin***Id^^^UserId^^^objectId^^^AdminId^^^Date^^^ModifyDate***";
-            string currentDate = this.getServerDateMilis();
-           
-            list = (from x in this.context.SubAdmins
-                    where x.ObjectId == objectId
-                    orderby x.ModifyDate descending
-                    select x).ToList<SubAdmin>();
-            
+            string serverDateMilis = this.getServerDateMilis();
+            List<SubAdmin> list = (from x in this.context.SubAdmins
+                                   where x.ObjectId == (int?)objectId
+                                   orderby x.ModifyDate descending
+                                   select x).ToList<SubAdmin>();
             string result;
             if (list == null || list.Count<SubAdmin>() <= 0)
             {
@@ -2658,18 +3436,18 @@ namespace Service
             int num = 0;
             string text2 = "";
             string text3 = "";
-            string[] array = param.Split(new char[]
+            string[] array = param.Split(new string[]
 			{
-				'-'
-			});
+				"***-***"
+			}, StringSplitOptions.RemoveEmptyEntries);
             string text4 = "";
             for (int i = 0; i < array.Length; i++)
             {
-                if (array[i] != null && array[i].Contains(":"))
+                if (array[i] != null && array[i].Contains("***:***"))
                 {
-                    string str = array[i].Substring(0, array[i].IndexOf(":")) + ",";
-                    string text5 = array[i].Substring(0, array[i].IndexOf(":"));
-                    text4 = array[i].Substring(array[i].IndexOf(":") + 1, array[i].Length - array[i].IndexOf(":") - 1);
+                    string str = array[i].Substring(0, array[i].IndexOf("***:***")) + ",";
+                    string text5 = array[i].Substring(0, array[i].IndexOf("***:***"));
+                    text4 = array[i].Substring(array[i].IndexOf("***:***") + 7, array[i].Length - array[i].IndexOf("***:***") - 7);
                     if (flag)
                     {
                         if (text4 != null && text4 != "")
@@ -2693,7 +3471,7 @@ namespace Service
                             int num2 = Convert.ToInt32(text4);
                             text3 = text3 + text4 + ",";
                         }
-                        catch (Exception var_13_186)
+                        catch (Exception var_12_179)
                         {
                             text3 = text3 + "'" + text4 + "',";
                         }
@@ -2712,9 +3490,6 @@ namespace Service
             {
                 text3 = text3.Remove(text3.LastIndexOf(","), 1);
             }
-
-
-
             if (flag)
             {
                 if (text == "")
@@ -2736,7 +3511,7 @@ namespace Service
                     {
                         num = Convert.ToInt32(value);
                     }
-                    catch (Exception var_15_2E0)
+                    catch (Exception var_14_2CB)
                     {
                         num = -1;
                     }
@@ -2763,7 +3538,7 @@ namespace Service
                 {
                     num = Convert.ToInt32(value2);
                 }
-                catch (Exception var_18_37B)
+                catch (Exception var_17_362)
                 {
                     num = -1;
                 }
@@ -2945,7 +3720,8 @@ namespace Service
                 if (fromDate != null && fromDate != "")
                 {
                     list = (from x in this.context.Objects
-                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0 && x.UserId == (int?)userId
+                            join sub in this.context.SubAdmins on x.Id equals sub.ObjectId
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0 && sub.UserId == (int?)userId
                             orderby x.ModifyDate descending
                             select x).ToList<Object>();
                 }
@@ -2953,14 +3729,16 @@ namespace Service
             else if (endDate != null && endDate != "")
             {
                 list = (from x in this.context.Objects
-                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0 && x.UserId == (int?)userId
+                        join sub in this.context.SubAdmins on x.Id equals sub.ObjectId
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0 && sub.UserId == (int?)userId
                         orderby x.ModifyDate descending
                         select x).ToList<Object>();
             }
             else
             {
                 list = (from x in this.context.Objects
-                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0 && x.UserId == (int?)userId
+                        join sub in this.context.SubAdmins on x.Id equals sub.ObjectId
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0 && sub.UserId == (int?)userId
                         orderby x.ModifyDate descending
                         select x).ToList<Object>();
             }
@@ -3193,10 +3971,9 @@ namespace Service
         {
             string text = " Object***Id^^^Name^^^Phone^^^Email^^^Fax^^^Description^^^Cellphone^^^Address^^^Pdf1^^^Pdf2^^^Pdf3^^^Pdf4^^^ObjectTypeId^^^ObjectBrandTypeId^^^Facebook^^^Instagram^^^LinkedIn^^^Google^^^Site^^^Twitter^^^ParentId^^^rate^^^serverDate^^^MainObjectId^^^ObjectId^^^UserId^^^Date^^^IsActive^^^AgencyService***";
             string serverDateMilis = this.getServerDateMilis();
-            object obj;
             List<Object> list = (from obj2 in this.context.Objects
                                  join lio in this.context.LikeInObjects on (int?)obj2.Id equals lio.ObjectId
-                                 where lio.UserId == userId
+                                 where lio.UserId == (int?)userId
                                  select obj2).ToList<Object>();
             text = string.Concat(new string[]
 			{
@@ -3208,7 +3985,7 @@ namespace Service
 			});
             foreach (Object current in list)
             {
-                obj = text;
+                object obj = text;
                 text = string.Concat(new object[]
 				{
 					obj,
@@ -3275,7 +4052,6 @@ namespace Service
             return text;
         }
 
-
         [WebMethod]
         public string getAllLikeInObjectByUserId(string fromDate, string endDate, int isRefresh, int userId)
         {
@@ -3338,10 +4114,10 @@ namespace Service
 						"^^^",
 						current.LikeType,
 						"^^^0",
-                        current.unFollow,
-                        "^^^",
-                        current.unFollowDate
-                        ,"***"
+						current.unFollow,
+						"^^^",
+						current.unFollowDate,
+						"***"
 					});
                 }
                 result = text;
@@ -3354,11 +4130,10 @@ namespace Service
         {
             string text = " Object***Id^^^Name^^^Phone^^^Email^^^Fax^^^Description^^^Cellphone^^^Address^^^Pdf1^^^Pdf2^^^Pdf3^^^Pdf4^^^ObjectTypeId^^^ObjectBrandTypeId^^^Facebook^^^Instagram^^^LinkedIn^^^Google^^^Site^^^Twitter^^^ParentId^^^rate^^^serverDate^^^MainObjectId^^^ObjectId^^^UserId^^^Date^^^IsActive^^^AgencyService***";
             string serverDateMilis = this.getServerDateMilis();
-            object obj;
             List<Object> list = (from obj2 in this.context.Objects
                                  join lio in this.context.LikeInObjects on (int?)obj2.Id equals lio.ObjectId
                                  join usr in this.context.Users on lio.UserId equals (int?)usr.Id
-                                 where usr.Id == userId
+                                 where usr.Id == userId && lio.unFollow == null
                                  select obj2).ToList<Object>();
             text = string.Concat(new string[]
 			{
@@ -3370,7 +4145,7 @@ namespace Service
 			});
             foreach (Object current in list)
             {
-                obj = text;
+                object obj = text;
                 text = string.Concat(new object[]
 				{
 					obj,
@@ -3491,8 +4266,8 @@ namespace Service
 						obj,
 						current.Id,
 						"^^^",
-                        current.UserId,
-                        "^^^",
+						current.UserId,
+						"^^^",
 						current.ObjectId,
 						"^^^",
 						current.Date,
@@ -3522,7 +4297,6 @@ namespace Service
         public string getObjectByObjectId(int objectId, string fromDate, string toDate, int provinceId = 0, int cityId = 0, int agencyService = 0)
         {
             string text = " Object***Id^^^Name^^^Phone^^^Email^^^Fax^^^Description^^^Cellphone^^^Address^^^Pdf1^^^Pdf2^^^Pdf3^^^Pdf4^^^ObjectTypeId^^^ObjectBrandTypeId^^^Facebook^^^Instagram^^^LinkedIn^^^Google^^^Site^^^Twitter^^^ParentId^^^rate^^^serverDate^^^MainObjectId^^^ObjectId^^^UserId^^^Date^^^IsActive^^^AgencyService***";
-            object obj;
             List<Object> list = (from obj2 in this.context.Objects
                                  join oic in this.context.ObjectInCities on (int?)obj2.Id equals oic.ObjectId
                                  where obj2.ModifyDate != null && fromDate.CompareTo(obj2.ModifyDate) < 0 && toDate.CompareTo(obj2.ModifyDate) >= 0 && oic.CityId == (int?)cityId && obj2.AgencyService == (int?)agencyService
@@ -3541,7 +4315,7 @@ namespace Service
 				});
                 foreach (Object current in list)
                 {
-                    obj = text;
+                    object obj = text;
                     text = string.Concat(new object[]
 					{
 						obj,
@@ -3623,25 +4397,24 @@ namespace Service
         }
 
         [WebMethod]
-        public string getHappySadByObjectId(int objectId,int type)
+        public string getHappySadByObjectId(int objectId, int type)
         {
             return (from x in this.context.LikeInObjects
-                    where x.ObjectId == (int?)objectId && x.LikeType == type
+                    where x.ObjectId == (int?)objectId && x.LikeType == (int?)type
                     select x).Count<LikeInObject>().ToString();
         }
 
         [WebMethod]
-        public string getUserByObjectId(int objectId,int type)
+        public string getUserByObjectId(int objectId, int type)
         {
-            List<User> list = null;
             string text = "";
             text = "Users***Id^^^Name^^^Email^^^Password^^^Phonenumber^^^mobailenumber^^^Faxnumber^^^Address^^^Date^^^ShowInfoItem^^^BirthDay^^^CityId***";
-            string currentDate = this.getServerDateMilis();
-            list = (from x in this.context.Users
-                    join lio in this.context.LikeInObjects on x.Id equals lio.UserId
-                    where lio.ObjectId == objectId && lio.LikeType == type
-                    orderby x.ModifyDate descending
-                    select x).ToList<User>();
+            string serverDateMilis = this.getServerDateMilis();
+            List<User> list = (from x in this.context.Users
+                               join lio in this.context.LikeInObjects on (int?)x.Id equals lio.UserId
+                               where lio.ObjectId == (int?)objectId && lio.LikeType == (int?)type
+                               orderby x.ModifyDate descending
+                               select x).ToList<User>();
             string result;
             if (list == null || list.Count<User>() <= 0)
             {
@@ -3697,17 +4470,14 @@ namespace Service
         [WebMethod]
         public string getLikeInObjectByObjectId(int objectId, int type)
         {
-            List<LikeInObject> list = null;
             string text = "";
             text = " LikeInObject***Id^^^UserId^^^PaperId^^^Date^^^LikeType^^^Seen^^^unFollow^^^unFollowDate^^^IsLike***";
-            string currentDate = this.getServerDateMilis();
-
-            list = (from x in this.context.Users
-                    join lio in this.context.LikeInObjects on x.Id equals lio.UserId
-                    where lio.ObjectId == objectId && lio.LikeType == type
-                    orderby x.ModifyDate descending
-                    select lio).ToList<LikeInObject>();
-            
+            string serverDateMilis = this.getServerDateMilis();
+            List<LikeInObject> list = (from x in this.context.Users
+                                       join lio in this.context.LikeInObjects on (int?)x.Id equals lio.UserId
+                                       where lio.ObjectId == (int?)objectId && lio.LikeType == (int?)type
+                                       orderby x.ModifyDate descending
+                                       select lio).ToList<LikeInObject>();
             string result;
             if (list == null || list.Count<LikeInObject>() <= 0)
             {
@@ -3739,20 +4509,19 @@ namespace Service
 						"^^^",
 						current.LikeType,
 						"^^^0",
-                        "^^^",
-                        current.unFollow,
-                        "^^^",
-                        current.unFollowDate,
-                        "^^^",
-                        current.IsLike,
-                        "***"
+						"^^^",
+						current.unFollow,
+						"^^^",
+						current.unFollowDate,
+						"^^^",
+						current.IsLike,
+						"***"
 					});
                 }
                 result = text;
             }
             return result;
         }
-
 
         [WebMethod]
         public string getFollowerCountByObjectId(int objectId)
@@ -3766,8 +4535,90 @@ namespace Service
         public string getLikeInPostCount(int id)
         {
             return (from x in this.context.LikeInPosts
-                    where x.PostId == (int?)id 
+                    where x.PostId == (int?)id
                     select x).Count<LikeInPost>().ToString();
+        }
+
+        [WebMethod]
+        public string getLikeInCommentCount(int id)
+        {
+            return (from x in this.context.LikeInComments
+                    where x.CommentId == (int?)id && x.IsLike == (int?)1
+                    select x).Count<LikeInComment>().ToString();
+        }
+
+        [WebMethod]
+        public string getLikeInCommentObjectCount(int id)
+        {
+            return (from x in this.context.LikeInCommentObjects
+                    where x.CommentId == (int?)id && x.IsLike == (int?)1
+                    select x).Count<LikeInCommentObject>().ToString();
+        }
+
+
+        [WebMethod]
+        public string getLikeInCommentPostCount(int id)
+        {
+            return (from x in this.context.LikeInCommentPosts
+                    where x.CommentId == (int?)id && x.IsLike == (int?)1
+                    select x).Count<LikeInCommentPost>().ToString();
+        }
+
+        [WebMethod]
+        public string getDisLikeInCommentCount(int id)
+        {
+            return (from x in this.context.LikeInComments
+                    where x.CommentId == (int?)id && x.IsLike == (int?)0
+                    select x).Count<LikeInComment>().ToString();
+        }
+
+        [WebMethod]
+        public string getDisLikeInCommentObjectCount(int id)
+        {
+            return (from x in this.context.LikeInCommentObjects
+                    where x.CommentId == (int?)id && x.IsLike == (int?)0
+                    select x).Count<LikeInCommentObject>().ToString();
+        }
+
+        [WebMethod]
+        public string getDisLikeInCommentPostCount(int id)
+        {
+            return (from x in this.context.LikeInCommentPosts
+                    where x.CommentId == (int?)id && x.IsLike == (int?)0
+                    select x).Count<LikeInCommentPost>().ToString();
+        }
+
+
+        [WebMethod]
+        public string getReplyInCommentInFroumCount(int id)
+        {
+            return (from x in this.context.CommentInFroums
+                    where x.CommentId == (int?)id
+                    select x).Count<CommentInFroum>().ToString();
+        }
+
+        [WebMethod]
+        public string getReplyInCommentInPaperCount(int id)
+        {
+            return (from x in this.context.CommentInPapers
+                    where x.CommentId == (int?)id
+                    select x).Count<CommentInPaper>().ToString();
+        }
+
+        [WebMethod]
+        public string getReplyInCommentInObjectsCount(int id)
+        {
+            return (from x in this.context.CommentInObjects
+                    where x.CommentId == (int?)id
+                    select x).Count<CommentInObject>().ToString();
+        }
+
+        [WebMethod]
+        public string getReplyInCommentInPostCount(int id)
+        {
+            return (from x in this.context.CommentInPosts
+                    where x.CommentId == (int?)id
+                    select x).Count<CommentInPost>().ToString();
         }
 
         [WebMethod]
@@ -3790,19 +4641,26 @@ namespace Service
         public string getCommentInPostCount(int id)
         {
             return (from x in this.context.CommentInPosts
-                    where x.PostId == (int?)id
+                    where x.PostId == (int?)id && x.CommentId == null
                     select x).Count<CommentInPost>().ToString();
+        }
+
+        [WebMethod]
+        public string getCommentInObjectCount(int objectId)
+        {
+            return (from x in this.context.CommentInObjects
+                    where x.ObjectId == (int?)objectId && x.CommentId == null
+                    select x).Count<CommentInObject>().ToString();
         }
 
         [WebMethod]
         public string getCommentInPostById(int id)
         {
             List<CommentInPost> list = (from x in this.context.CommentInPosts
-                    where x.PostId == (int?)id
-                    select x).ToList();
-
+                                        where x.PostId == (int?)id
+                                        select x).ToList<CommentInPost>();
             string text = " CommentInPost***Id^^^Description^^^PostId^^^UserId^^^Date^^^ CommentId***";
-            string currentDate = this.getServerDateMilis();
+            string serverDateMilis = this.getServerDateMilis();
             string result;
             if (list == null || list.Count<CommentInPost>() <= 0)
             {
@@ -3847,7 +4705,7 @@ namespace Service
         public string getCommentInPaperCount(int id)
         {
             return (from x in this.context.CommentInPapers
-                    where x.PaperId == (int?)id
+                    where x.PaperId == (int?)id && x.CommentId == null
                     select x).Count<CommentInPaper>().ToString();
         }
 
@@ -3855,13 +4713,11 @@ namespace Service
         public string getCommentInPaperById(int id)
         {
             List<CommentInPaper> list = (from x in this.context.CommentInPapers
-                    where x.PaperId == (int?)id
-                    select x).ToList();
-
+                                         where x.PaperId == (int?)id
+                                         select x).ToList<CommentInPaper>();
             string text = "";
             text = " CmtInPaper***Id^^^Desk^^^PaperId^^^UserId^^^Date^^^ CommentId^^^ Seen***";
-            string currentDate = this.getServerDateMilis();
-           
+            string serverDateMilis = this.getServerDateMilis();
             string result;
             if (list == null || list.Count<CommentInPaper>() <= 0)
             {
@@ -3902,27 +4758,23 @@ namespace Service
             return result;
         }
 
-
         [WebMethod]
         public string getCommentInFroumCount(int id)
         {
             return (from x in this.context.CommentInFroums
-                    where x.FroumId == (int?)id
+                    where x.FroumId == (int?)id && x.CommentId == null
                     select x).Count<CommentInFroum>().ToString();
         }
 
         [WebMethod]
         public string getCommentInFroumById(int id)
         {
-            List<CommentInFroum> list = null;
-            list = (from x in this.context.CommentInFroums
-                    where x.FroumId == (int?)id
-                    select x).ToList();
-
+            List<CommentInFroum> list = (from x in this.context.CommentInFroums
+                                         where x.FroumId == (int?)id
+                                         select x).ToList<CommentInFroum>();
             string text = "";
             text = " CommentInFroum***Id^^^Desk^^^FroumId^^^UserId^^^Date^^^CommentId^^^NumofLike^^^NumofDisLike^^^Seen***";
-            string currentDate = this.getServerDateMilis();
-            
+            string serverDateMilis = this.getServerDateMilis();
             string result;
             if (list == null || list.Count<CommentInFroum>() <= 0)
             {
@@ -3971,17 +4823,16 @@ namespace Service
         public string isObjectHasSubObject(int objectId, int agencyService)
         {
             return (from x in this.context.Objects
-                    where x.ObjectId == (int?)objectId && x.AgencyService == agencyService
+                    where x.ObjectId == (int?)objectId && x.AgencyService == (int?)agencyService
                     select x).Count<Object>().ToString();
         }
 
-
         [WebMethod]
-        public string getSubObjectsInCity(int objectId, int agencyService,int cityId)
+        public string getSubObjectsInCity(int objectId, int agencyService, int cityId)
         {
             return (from x in this.context.Objects
-                    join oInCity in context.ObjectInCities on x.Id equals oInCity.ObjectId
-                    where x.ObjectId == (int?)objectId && x.AgencyService == agencyService && oInCity.CityId == cityId
+                    join oInCity in this.context.ObjectInCities on (int?)x.Id equals oInCity.ObjectId
+                    where x.ObjectId == (int?)objectId && x.AgencyService == (int?)agencyService && oInCity.CityId == (int?)cityId
                     select x).Count<Object>().ToString();
         }
 
@@ -3989,9 +4840,870 @@ namespace Service
         public string getSubObjectsInProvince(int objectId, int agencyService, int provinceId)
         {
             return (from x in this.context.Objects
-                    join oInProvince in context.ObjectInProvinces on x.Id equals oInProvince.ObjectId
-                    where x.ObjectId == (int?)objectId && x.AgencyService == agencyService && oInProvince.ProvinceId == provinceId
+                    join oInProvince in this.context.ObjectInProvinces on (int?)x.Id equals oInProvince.ObjectId
+                    where x.ObjectId == (int?)objectId && x.AgencyService == (int?)agencyService && oInProvince.ProvinceId == (int?)provinceId
                     select x).Count<Object>().ToString();
+        }
+
+        [WebMethod]
+        public string getObjectCountByCityIdTypeId(int cityId, int mainObjectId)
+        {
+            return (from x in this.context.Objects
+                    join oInCity in this.context.ObjectInCities on (int?)x.Id equals oInCity.ObjectId
+                    where oInCity.CityId == (int?)cityId && x.MainObjectId == (int?)mainObjectId
+                    select x).Count<Object>().ToString();
+        }
+
+        [WebMethod]
+        public string getObjectCountByCityIdTypeIdObjectTypeId(int cityId, int mainObjectId, int objectTypeId)
+        {
+            return (from x in this.context.Objects
+                    join oInCity in this.context.ObjectInCities on (int?)x.Id equals oInCity.ObjectId
+                    where oInCity.CityId == (int?)cityId && x.MainObjectId == (int?)mainObjectId && x.ObjectTypeId == objectTypeId
+                    select x).Count<Object>().ToString();
+        }
+
+        [WebMethod]
+        public string getObjectCountByProvinceIdTypeId(int provinceId, int mainObjectId)
+        {
+            return (from x in this.context.Objects
+                    join oInProvince in this.context.ObjectInProvinces on (int?)x.Id equals oInProvince.ObjectId
+                    where oInProvince.ProvinceId == (int?)provinceId && x.MainObjectId == (int?)mainObjectId
+                    select x).Count<Object>().ToString();
+        }
+
+        [WebMethod]
+        public string getObjectByParentIdId(string fromDate, string endDate, int isRefresh, int parentId)
+        {
+            List<Object> list = null;
+            string text = "";
+            text = " Object***Id^^^Name^^^Phone^^^Email^^^Fax^^^Description^^^Cellphone^^^Address^^^Pdf1^^^Pdf2^^^Pdf3^^^Pdf4^^^ObjectTypeId^^^ObjectBrandTypeId^^^Facebook^^^Instagram^^^LinkedIn^^^Google^^^Site^^^Twitter^^^ParentId^^^rate^^^serverDate^^^MainObjectId^^^ObjectId^^^UserId^^^Date^^^IsActive^^^AgencyService***";
+            string currentDate = this.getServerDateMilis();
+            if (isRefresh > 0)
+            {
+                if (fromDate != null && fromDate != "")
+                {
+                    list = (from x in this.context.Objects
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0 && x.ParentId == parentId && x.MainObjectId == 1
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<Object>();
+                }
+            }
+            else if (endDate != null && endDate != "")
+            {
+                list = (from x in this.context.Objects
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0 && x.ParentId == parentId && x.MainObjectId == 1
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<Object>();
+            }
+            else
+            {
+                list = (from x in this.context.Objects
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0 && x.ParentId == parentId && x.MainObjectId == 1
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<Object>();
+            }
+            string result;
+            if (list == null || list.Count<Object>() <= 0)
+            {
+                result = "";
+            }
+            else
+            {
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<Object>().ModifyDate,
+					"***",
+					list.LastOrDefault<Object>().ModifyDate,
+					"***"
+				});
+                foreach (Object current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.Name,
+						"^^^",
+						current.Phone,
+						"^^^",
+						current.Email,
+						"^^^",
+						current.Fax,
+						"^^^",
+						current.Description,
+						"^^^",
+						current.Cellphone,
+						"^^^",
+						current.Address,
+						"^^^",
+						current.Pdf1,
+						"^^^",
+						current.Pdf2,
+						"^^^",
+						current.Pdf3,
+						"^^^",
+						current.Pdf4,
+						"^^^",
+						current.ObjectTypeId,
+						"^^^",
+						current.ObjectBrandTypeId,
+						"^^^",
+						current.Facebook,
+						"^^^",
+						current.Instagram,
+						"^^^",
+						current.LinkedIn,
+						"^^^",
+						current.Google,
+						"^^^",
+						current.Site,
+						"^^^",
+						current.Twitter,
+						"^^^",
+						current.ParentId,
+						"^^^",
+						current.rate,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.MainObjectId,
+						"^^^",
+						current.ObjectId,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.IsActive,
+						"^^^",
+						current.AgencyService,
+						"***"
+					});
+                }
+                result = text;
+            }
+            return result;
+        }
+
+        [WebMethod]
+        public string getObjectByCityId(string fromDate, string endDate, int isRefresh, int cityId)
+        {
+            List<Object> list = null;
+            string text = "";
+            text = " Object***Id^^^Name^^^Phone^^^Email^^^Fax^^^Description^^^Cellphone^^^Address^^^Pdf1^^^Pdf2^^^Pdf3^^^Pdf4^^^ObjectTypeId^^^ObjectBrandTypeId^^^Facebook^^^Instagram^^^LinkedIn^^^Google^^^Site^^^Twitter^^^ParentId^^^rate^^^serverDate^^^MainObjectId^^^ObjectId^^^UserId^^^Date^^^IsActive^^^AgencyService***";
+            string currentDate = this.getServerDateMilis();
+            if (isRefresh > 0)
+            {
+                if (fromDate != null && fromDate != "")
+                {
+                    list = (from x in this.context.Objects
+                            join oInCity in this.context.ObjectInCities on (int?)x.Id equals oInCity.ObjectId
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0 && oInCity.CityId == cityId && x.MainObjectId == 2
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<Object>();
+                }
+            }
+            else if (endDate != null && endDate != "")
+            {
+                list = (from x in this.context.Objects
+                        join oInCity in this.context.ObjectInCities on (int?)x.Id equals oInCity.ObjectId
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0 && oInCity.CityId == cityId && x.MainObjectId == 2
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<Object>();
+            }
+            else
+            {
+                list = (from x in this.context.Objects
+                        join oInCity in this.context.ObjectInCities on (int?)x.Id equals oInCity.ObjectId
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0 && oInCity.CityId == cityId && x.MainObjectId == 2
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<Object>();
+            }
+            string result;
+            if (list == null || list.Count<Object>() <= 0)
+            {
+                result = "";
+            }
+            else
+            {
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<Object>().ModifyDate,
+					"***",
+					list.LastOrDefault<Object>().ModifyDate,
+					"***"
+				});
+                foreach (Object current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.Name,
+						"^^^",
+						current.Phone,
+						"^^^",
+						current.Email,
+						"^^^",
+						current.Fax,
+						"^^^",
+						current.Description,
+						"^^^",
+						current.Cellphone,
+						"^^^",
+						current.Address,
+						"^^^",
+						current.Pdf1,
+						"^^^",
+						current.Pdf2,
+						"^^^",
+						current.Pdf3,
+						"^^^",
+						current.Pdf4,
+						"^^^",
+						current.ObjectTypeId,
+						"^^^",
+						current.ObjectBrandTypeId,
+						"^^^",
+						current.Facebook,
+						"^^^",
+						current.Instagram,
+						"^^^",
+						current.LinkedIn,
+						"^^^",
+						current.Google,
+						"^^^",
+						current.Site,
+						"^^^",
+						current.Twitter,
+						"^^^",
+						current.ParentId,
+						"^^^",
+						current.rate,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.MainObjectId,
+						"^^^",
+						current.ObjectId,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.IsActive,
+						"^^^",
+						current.AgencyService,
+						"***"
+					});
+                }
+                result = text;
+            }
+            return result;
+        }
+
+        [WebMethod]
+        public string getObjectByProvinceId(string fromDate, string endDate, int isRefresh, int provinceId)
+        {
+            List<Object> list = null;
+            string text = "";
+            text = " Object***Id^^^Name^^^Phone^^^Email^^^Fax^^^Description^^^Cellphone^^^Address^^^Pdf1^^^Pdf2^^^Pdf3^^^Pdf4^^^ObjectTypeId^^^ObjectBrandTypeId^^^Facebook^^^Instagram^^^LinkedIn^^^Google^^^Site^^^Twitter^^^ParentId^^^rate^^^serverDate^^^MainObjectId^^^ObjectId^^^UserId^^^Date^^^IsActive^^^AgencyService***";
+            string currentDate = this.getServerDateMilis();
+            if (isRefresh > 0)
+            {
+                if (fromDate != null && fromDate != "")
+                {
+                    list = (from x in this.context.Objects
+                            join oInProvince in this.context.ObjectInProvinces on (int?)x.Id equals oInProvince.ObjectId
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0 && oInProvince.ProvinceId == provinceId && x.MainObjectId == 2
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<Object>();
+                }
+            }
+            else if (endDate != null && endDate != "")
+            {
+                list = (from x in this.context.Objects
+                        join oInProvince in this.context.ObjectInProvinces on (int?)x.Id equals oInProvince.ObjectId
+                        where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0 && oInProvince.ProvinceId == provinceId && x.MainObjectId == 2
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<Object>();
+            }
+            else
+            {
+                list = (from x in this.context.Objects
+                        join oInProvince in this.context.ObjectInProvinces on (int?)x.Id equals oInProvince.ObjectId
+                        where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0 && oInProvince.ProvinceId == provinceId && x.MainObjectId == 2
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<Object>();
+            }
+            string result;
+            if (list == null || list.Count<Object>() <= 0)
+            {
+                result = "";
+            }
+            else
+            {
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<Object>().ModifyDate,
+					"***",
+					list.LastOrDefault<Object>().ModifyDate,
+					"***"
+				});
+                foreach (Object current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.Name,
+						"^^^",
+						current.Phone,
+						"^^^",
+						current.Email,
+						"^^^",
+						current.Fax,
+						"^^^",
+						current.Description,
+						"^^^",
+						current.Cellphone,
+						"^^^",
+						current.Address,
+						"^^^",
+						current.Pdf1,
+						"^^^",
+						current.Pdf2,
+						"^^^",
+						current.Pdf3,
+						"^^^",
+						current.Pdf4,
+						"^^^",
+						current.ObjectTypeId,
+						"^^^",
+						current.ObjectBrandTypeId,
+						"^^^",
+						current.Facebook,
+						"^^^",
+						current.Instagram,
+						"^^^",
+						current.LinkedIn,
+						"^^^",
+						current.Google,
+						"^^^",
+						current.Site,
+						"^^^",
+						current.Twitter,
+						"^^^",
+						current.ParentId,
+						"^^^",
+						current.rate,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.MainObjectId,
+						"^^^",
+						current.ObjectId,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.IsActive,
+						"^^^",
+						current.AgencyService,
+						"***"
+					});
+                }
+                result = text;
+            }
+            return result;
+        }
+
+        [WebMethod]
+        public string getObjectByMainObjectIdAndObjectTypeId(string fromDate, string endDate, int isRefresh, int MainObjectId, int ObjectTypeId, int cityId)
+        {
+            List<Object> list = null;
+            string text = "";
+            text = " Object***Id^^^Name^^^Phone^^^Email^^^Fax^^^Description^^^Cellphone^^^Address^^^Pdf1^^^Pdf2^^^Pdf3^^^Pdf4^^^ObjectTypeId^^^ObjectBrandTypeId^^^Facebook^^^Instagram^^^LinkedIn^^^Google^^^Site^^^Twitter^^^ParentId^^^rate^^^serverDate^^^MainObjectId^^^ObjectId^^^UserId^^^Date^^^IsActive^^^AgencyService***";
+            string currentDate = this.getServerDateMilis();
+            if (isRefresh > 0)
+            {
+                if (fromDate != null && fromDate != "")
+                {
+                    list = (from x in this.context.Objects
+                            join oInCity in this.context.ObjectInCities on (int?)x.Id equals oInCity.ObjectId
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0 && x.ObjectTypeId == ObjectTypeId && x.MainObjectId == MainObjectId && oInCity.CityId == cityId 
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<Object>();
+                }
+            }
+            else if (endDate != null && endDate != "")
+            {
+                list = (from x in this.context.Objects
+                        join oInCity in this.context.ObjectInCities on (int?)x.Id equals oInCity.ObjectId
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0 && x.ObjectTypeId == ObjectTypeId && x.MainObjectId == MainObjectId && oInCity.CityId == cityId
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<Object>();
+            }
+            else
+            {
+                list = (from x in this.context.Objects
+                        join oInCity in this.context.ObjectInCities on (int?)x.Id equals oInCity.ObjectId
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0 && x.ObjectTypeId == ObjectTypeId && x.MainObjectId == MainObjectId && oInCity.CityId == cityId
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<Object>();
+            }
+            string result;
+            if (list == null || list.Count<Object>() <= 0)
+            {
+                result = "";
+            }
+            else
+            {
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<Object>().ModifyDate,
+					"***",
+					list.LastOrDefault<Object>().ModifyDate,
+					"***"
+				});
+                foreach (Object current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.Name,
+						"^^^",
+						current.Phone,
+						"^^^",
+						current.Email,
+						"^^^",
+						current.Fax,
+						"^^^",
+						current.Description,
+						"^^^",
+						current.Cellphone,
+						"^^^",
+						current.Address,
+						"^^^",
+						current.Pdf1,
+						"^^^",
+						current.Pdf2,
+						"^^^",
+						current.Pdf3,
+						"^^^",
+						current.Pdf4,
+						"^^^",
+						current.ObjectTypeId,
+						"^^^",
+						current.ObjectBrandTypeId,
+						"^^^",
+						current.Facebook,
+						"^^^",
+						current.Instagram,
+						"^^^",
+						current.LinkedIn,
+						"^^^",
+						current.Google,
+						"^^^",
+						current.Site,
+						"^^^",
+						current.Twitter,
+						"^^^",
+						current.ParentId,
+						"^^^",
+						current.rate,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.MainObjectId,
+						"^^^",
+						current.ObjectId,
+						"^^^",
+						current.UserId,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.IsActive,
+						"^^^",
+						current.AgencyService,
+						"***"
+					});
+                }
+                result = text;
+            }
+            return result;
+        }
+        [WebMethod]
+        public string getAllAnadByProvinceId(string fromDate, string endDate, int isRefresh, int provinceId)
+        {
+            List<Anad> list = null;
+            string text = "";
+            text = " Anad***Id^^^UserId^^^ObjectId^^^Date^^^ TypeId^^^ ProvinceId^^^ Seen***";
+            string currentDate = this.getServerDateMilis();
+            if (isRefresh > 0)
+            {
+                if (fromDate != null && fromDate != "")
+                {
+                    list = (from x in this.context.Anads
+                            where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0 && x.ProvinceId == provinceId
+                            orderby x.ModifyDate descending
+                            select x).Take(this.recordCount).ToList<Anad>();
+                }
+            }
+            else if (endDate != null && endDate != "")
+            {
+                list = (from x in this.context.Anads
+                        where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0 && x.ProvinceId == provinceId
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<Anad>();
+            }
+            else
+            {
+                list = (from x in this.context.Anads
+                        where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0 && x.ProvinceId == provinceId
+                        orderby x.ModifyDate descending
+                        select x).Take(this.recordCount).ToList<Anad>();
+            }
+            string result;
+            if (list == null || list.Count<Anad>() <= 0)
+            {
+                result = "";
+            }
+            else
+            {
+                text = string.Concat(new string[]
+        {
+          text,
+          list.FirstOrDefault<Anad>().ModifyDate,
+          "***",
+          list.LastOrDefault<Anad>().ModifyDate,
+          "***"
+        });
+                foreach (Anad current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+          {
+            obj,
+            current.Id,
+            "^^^",
+            current.UserId,
+            "^^^",
+            current.ObjectId,
+            "^^^",
+            current.Date,
+            "^^^",
+            current.TypeId,
+            "^^^",
+            current.ProvinceId,
+            "^^^0***"
+          });
+                }
+                result = text;
+            }
+            return result;
+        }
+
+        [WebMethod]
+        public string getListItemByListId(string fromDate, string endDate, int isRefresh) 
+        {
+            List<ListItem> list = null;
+            string text = "";
+            text = " ListItem***Id^^^Name^^^ListId***";
+            string currentDate = this.getServerDateMilis();
+            if (isRefresh > 0)
+            {
+                if (fromDate != null && fromDate != "")
+                {
+                    list = (from x in this.context.ListItems
+                    where x.ModifyDate != null && fromDate.CompareTo(x.ModifyDate) < 0 
+                    orderby x.ModifyDate descending
+                    select x).ToList<ListItem>();
+                }
+            }
+            else if (endDate != null && endDate != "")
+            {
+                list = (from x in this.context.ListItems
+                    where x.ModifyDate != null && endDate.CompareTo(x.ModifyDate) >= 0 
+                    orderby x.ModifyDate descending
+                    select x).ToList<ListItem>();
+            }
+            else
+            {
+                    list = (from x in this.context.ListItems
+                    where x.ModifyDate != null && currentDate.CompareTo(x.ModifyDate) >= 0 
+                    orderby x.ModifyDate descending
+                    select x).ToList<ListItem>();
+            }
+            string result;
+            if (list == null || list.Count<ListItem>() <= 0)
+            {
+                result = "";
+            }
+            else
+            {
+                text = string.Concat(new string[]
+        {
+          text,
+          list.FirstOrDefault<ListItem>().ModifyDate,
+          "***",
+          list.LastOrDefault<ListItem>().ModifyDate,
+          "***"
+        });
+                foreach (ListItem current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+          {
+            obj,
+                        current.Id,
+                        "^^^",
+                        current.Name,
+                        "^^^",
+                        current.ListId,
+                        "***"
+          });
+                }
+                result = text;
+            }
+            return result;
+        }
+
+        [WebMethod]
+        public string unfollowAnObject(string objectId, string userId)
+        {
+            int num = 0;
+            int value = this.context.ExecuteQuery<int>(string.Concat(new string[]
+					{
+						"UPDATE LikeInObject ",
+						" SET unFollow = 1, unFollowDate = '",
+	                    getServerDateMilis(),
+						"' WHERE Id= ",
+						objectId,
+                        "AND UserId = ",
+                        userId
+					}), new object[0]).FirstOrDefault<int>();
+            try
+            {
+                num = Convert.ToInt32(value);
+            }
+            catch (Exception var_14_2CB)
+            {
+                num = -1;
+            }
+
+            return num.ToString();
+        }
+
+        [WebMethod]
+        public bool userCanAddNewTicket(int userId)
+        {
+            int count = (from x in this.context.Tickets
+                    where x.UserId == userId &&  (new DateTime(long.Parse(x.ModifyDate)).AddDays( (double) x.Day)).CompareTo(DateTime.Now) > 0 
+                    select x).Count<Ticket>();
+
+            return count <= numberOfTicketForOneUser;
+        }
+
+        [WebMethod]
+        public string getUserBithdayCountByCityId(int cityId)
+        {
+            return (from x in this.context.Users
+                    where Convert.ToDateTime(x.BirthDay).Equals(DateTime.Today.Date) && x.CityId == cityId
+                    select x).Count<User>().ToString();
+        }
+
+        [WebMethod]
+        public string getUserBithdayCount()
+        {
+            return (from x in this.context.Users
+                    where Convert.ToDateTime(x.BirthDay).Equals(DateTime.Today.Date) 
+                    select x).Count<User>().ToString();
+        }
+
+        [WebMethod]
+        public string getUserBithdayCountByProvinceId(int provinceId)
+        {
+            return (from x in this.context.Users
+                    join oInProvince in this.context.ObjectInProvinces on (int?)x.Id equals oInProvince.ObjectId
+                    where Convert.ToDateTime(x.BirthDay).Equals(DateTime.Today.Date) && oInProvince.ProvinceId == provinceId
+                    select x).Count<User>().ToString();
+        }
+
+        [WebMethod]
+        public string getVisitUserBithdayCountByObjectIdCityId(int objectId, int cityId)
+        {
+            return (from x in this.context.Users
+                    join oInVisit in this.context.Visits on x.Id equals oInVisit.ObjectId
+                    where Convert.ToDateTime(x.BirthDay).Equals(DateTime.Today.Date) && oInVisit.TypeId == 1 && oInVisit.ObjectId == objectId && x.CityId == cityId
+                    select x).Count<User>().ToString();
+        }
+
+        [WebMethod]
+        public string getfollowUserBithdayCountByObjectIdByCityId(int objectId, int cityId)
+        {
+            return (from x in this.context.Users
+                    join lio in this.context.LikeInObjects on x.Id equals lio.ObjectId
+                    where Convert.ToDateTime(x.BirthDay).Equals(DateTime.Today.Date) && lio.LikeType == 0 && lio.ObjectId == objectId && x.CityId == cityId
+                    select x).Count<User>().ToString();
+        }
+
+        [WebMethod]
+        public string getVisitUserBithdayCountByObjectId(int objectId)
+        {
+            return (from x in this.context.Users
+                    join oInVisit in this.context.Visits on x.Id equals oInVisit.ObjectId
+                    where Convert.ToDateTime(x.BirthDay).Equals(DateTime.Today.Date) && oInVisit.TypeId == 1 && oInVisit.ObjectId == objectId 
+                    select x).Count<User>().ToString();
+        }
+
+        [WebMethod]
+        public string getfollowUserBithdayCountByObjectId(int objectId)
+        {
+            return (from x in this.context.Users
+                    join lio in this.context.LikeInObjects on x.Id equals lio.ObjectId
+                    where Convert.ToDateTime(x.BirthDay).Equals(DateTime.Today.Date) && lio.LikeType == 0 && lio.ObjectId == objectId 
+                    select x).Count<User>().ToString();
+        }
+
+
+        [WebMethod]
+        public string getAllfollowUserBithdayByObjectIdCityId(int objectId,int cityId)
+        {
+            string text = "";
+            text = "Users***Id^^^Name^^^Email^^^Password^^^Phonenumber^^^mobailenumber^^^Faxnumber^^^Address^^^Date^^^ShowInfoItem^^^BirthDay^^^CityId***";
+            string serverDateMilis = this.getServerDateMilis();
+            List<User> list = (from x in this.context.Users
+                    join lio in this.context.LikeInObjects on x.Id equals lio.ObjectId
+                    where Convert.ToDateTime(x.BirthDay).Equals(DateTime.Today.Date) && lio.LikeType == 0 && lio.ObjectId == objectId && x.CityId == cityId
+                    select x).ToList<User>();
+            string result;
+            if (list == null || list.Count<User>() <= 0)
+            {
+                result = "";
+            }
+            else
+            {
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<User>().ModifyDate,
+					"***",
+					list.LastOrDefault<User>().ModifyDate,
+					"***"
+				});
+                foreach (User current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.Name,
+						"^^^",
+						current.Email,
+						"^^^",
+						current.Password,
+						"^^^",
+						current.Phonenumber,
+						"^^^",
+						current.Mobailenumber,
+						"^^^",
+						current.Faxnumber,
+						"^^^",
+						current.Address,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.ShowInfoItem,
+						"^^^",
+						current.BirthDay,
+						"^^^",
+						current.CityId,
+						"***"
+					});
+                }
+                result = text;
+            }
+            return result;
+        }
+
+        [WebMethod]
+        public string getAllfollowUserBithdayByObjectId(int objectId)
+        {
+            string text = "";
+            text = "Users***Id^^^Name^^^Email^^^Password^^^Phonenumber^^^mobailenumber^^^Faxnumber^^^Address^^^Date^^^ShowInfoItem^^^BirthDay^^^CityId***";
+            string serverDateMilis = this.getServerDateMilis();
+            List<User> list = (from x in this.context.Users
+                               join lio in this.context.LikeInObjects on x.Id equals lio.ObjectId
+                               where Convert.ToDateTime(x.BirthDay).Equals(DateTime.Today.Date) && lio.LikeType == 0 && lio.ObjectId == objectId 
+                               select x).ToList<User>();
+            string result;
+            if (list == null || list.Count<User>() <= 0)
+            {
+                result = "";
+            }
+            else
+            {
+                text = string.Concat(new string[]
+				{
+					text,
+					list.FirstOrDefault<User>().ModifyDate,
+					"***",
+					list.LastOrDefault<User>().ModifyDate,
+					"***"
+				});
+                foreach (User current in list)
+                {
+                    object obj = text;
+                    text = string.Concat(new object[]
+					{
+						obj,
+						current.Id,
+						"^^^",
+						current.Name,
+						"^^^",
+						current.Email,
+						"^^^",
+						current.Password,
+						"^^^",
+						current.Phonenumber,
+						"^^^",
+						current.Mobailenumber,
+						"^^^",
+						current.Faxnumber,
+						"^^^",
+						current.Address,
+						"^^^",
+						current.Date,
+						"^^^",
+						current.ShowInfoItem,
+						"^^^",
+						current.BirthDay,
+						"^^^",
+						current.CityId,
+						"***"
+					});
+                }
+                result = text;
+            }
+            return result;
         }
     }
 }
